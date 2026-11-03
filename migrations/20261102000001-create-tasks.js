@@ -26,7 +26,7 @@ module.exports = {
         allowNull: true,
       },
       status: {
-        type: Sequelize.ENUM('pending', 'completed'),
+        type: Sequelize.STRING(20),
         allowNull: false,
         defaultValue: 'pending',
       },
@@ -52,6 +52,13 @@ module.exports = {
       },
     });
 
+    await queryInterface.addConstraint('tasks', {
+      fields: ['status'],
+      type: 'check',
+      where: { status: ['pending', 'completed'] },
+      name: 'tasks_status_check',
+    });
+
     await queryInterface.addIndex('tasks', ['user_id'], {
       name: 'tasks_user_id_idx',
     });
@@ -62,8 +69,5 @@ module.exports = {
 
   async down(queryInterface) {
     await queryInterface.dropTable('tasks');
-    await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_tasks_status";'
-    );
   },
 };

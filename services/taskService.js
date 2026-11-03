@@ -1,6 +1,6 @@
 'use strict';
 
-const { Task } = require('../models');
+const { sequelize, Task } = require('../models');
 
 const TASK_STATUSES = Object.freeze(['pending', 'completed']);
 
@@ -55,6 +55,7 @@ async function listOwnedTasks({ userId, status }) {
   return Task.findAll({
     where,
     order: [
+      [sequelize.literal('due_date IS NULL'), 'ASC'],
       ['dueDate', 'ASC'],
       ['created_at', 'DESC'],
     ],

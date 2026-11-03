@@ -1,14 +1,7 @@
 # Render Blueprint for StudyTask.
-# The free web service and free PostgreSQL plan are suitable for the course demo.
-# Render free PostgreSQL databases expire 30 days after creation.
-
-databases:
-  - name: studytask-db
-    databaseName: studytask
-    user: studytask_app
-    plan: free
-    postgresMajorVersion: '18'
-    region: oregon
+# The free web service has an ephemeral filesystem and no Shell access.
+# SQLite works for a demo, but its data is lost on every restart/redeploy.
+# For durable data, use a paid service with a persistent disk (see DEPLOYMENT.md).
 
 services:
   - type: web
@@ -16,9 +9,9 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: npm ci --include=dev
-    # Free web services cannot use preDeployCommand or Shell access.
-    # The production start command runs pending migrations before starting.
+    buildCommand: npm ci --omit=dev
+    # Migrations run before server.js starts. The database is recreated on each
+    # cold start because the free filesystem is ephemeral.
     startCommand: npm run start:production
     healthCheckPath: /
     autoDeployTrigger: commit
@@ -29,10 +22,8 @@ services:
         value: 24.22.1
       - key: PORT
         value: '10000'
-      - key: DATABASE_URL
-        fromDatabase:
-          name: studytask-db
-          property: connectionString
+      - key: DATABASE_STORAGE
+        value: /tmp/studytask.db
       - key: JWT_SECRET
         generateValue: true
       - key: CSRF_SECRET

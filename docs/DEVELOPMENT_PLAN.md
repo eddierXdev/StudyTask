@@ -1,6 +1,7 @@
 # StudyTask --- Plan de desarrollo
 
-**Estado actual:** Diseño aprobado; implementación no iniciada.\
+**Estado actual:** Implementación completada con SQLite; despliegue
+público pendiente de verificación.\
 **Objetivo:** Completar los requisitos obligatorios del proyecto final
 con el menor alcance razonable.
 
@@ -39,14 +40,17 @@ Criterios de aceptación: - El servidor inicia. - EJS renderiza una vista
 de prueba. - Los archivos estáticos se sirven. - No hay secretos en el
 repositorio.
 
-### Fase 2 --- PostgreSQL y Sequelize
+### Fase 2 --- SQLite y Sequelize
 
-Objetivos: - Configurar conexión. - Definir modelos User y Task. -
-Definir relación 1:N. - Configurar migraciones. - Verificar
-persistencia.
+Objetivos: - Configurar conexión SQLite con `sqlite3`. - Definir modelos
+User y Task. - Definir relación 1:N. - Configurar migraciones. -
+Verificar persistencia.
 
-Criterios: - La conexión funciona. - Las tablas se crean mediante
-migraciones. - La relación y restricciones funcionan.
+Criterios: - La conexión funciona sin servidor externo. - Las tablas se
+crean mediante migraciones. - La relación, los índices y las
+restricciones funcionan. - El archivo SQLite persiste entre reinicios.
+
+Estado: **Completada con SQLite**.
 
 ### Fase 3 --- Registro y autenticación
 
@@ -73,10 +77,11 @@ ajenas. - Solicitudes mutables sin token CSRF válido se rechazan.
 Objetivos: - Crear tarea. - Listar tareas propias. - Consultar
 detalle. - Editar. - Eliminar. - Cambiar estado. - Filtrar por estado.
 
-Criterios: - Todas las operaciones persisten en PostgreSQL. - Campos
+Criterios: - Todas las operaciones persisten en SQLite. - Campos
 obligatorios y opcionales se respetan. - El estado inicial es
-`pending`. - El filtro distingue `pending` y `completed`. - No hay
-acceso cruzado entre usuarios.
+`pending`. - El filtro distingue `pending` y `completed`. - Las tareas
+sin fecha límite se ordenan al final. - No hay acceso cruzado entre
+usuarios.
 
 ### Fase 6 --- Administración
 
@@ -110,19 +115,27 @@ CSRF. - Logout.
 
 ### Fase 9 --- Despliegue
 
-Objetivos: - Preparar PostgreSQL de producción. - Configurar servicio
-Node.js en Render. - Configurar variables de entorno. - Ejecutar
-migraciones. - Verificar HTTPS y cookies Secure. - Probar aplicación
-publicada.
+Objetivos: - Preparar SQLite para el plan gratuito de Render. - Configurar
+servicio Node.js sin método de pago. - Configurar variables de entorno. -
+Ejecutar migraciones. - Crear el administrador sin Shell. - Verificar
+HTTPS y cookies Secure. - Probar aplicación publicada.
 
-Criterios: - URL pública funcional. - Persistencia confirmada. -
-Autenticación funciona en producción. - No se exponen secretos.
+Criterios: - URL pública funcional. - Autenticación funciona en
+producción. - No se exponen secretos. - La pérdida de datos por el
+sistema de archivos efímero está documentada.
+
+Estado: **Configuración gratuita preparada; despliegue público pendiente**.
+Render Free no ofrece disco persistente ni Shell; la base SQLite vive en
+`/tmp` y se reinicia con el servicio. El administrador se crea con las
+variables `ADMIN_*`.
 
 ### Fase 10 --- Entrega
 
 Entregables: - Repositorio GitHub. - Aplicación desplegada. - README con
 descripción, tecnologías, funcionalidades e instalación. - Evidencia
 visual opcional.
+
+Estado: **README completado; aplicación desplegada pendiente**.
 
 ## 3. Mejoras opcionales
 
@@ -145,13 +158,13 @@ avanzar.
   Fase                 Estado
   -------------------- -----------
   0\. Documentación    Aprobada
-  1\. Inicialización   Pendiente
-  2\. Base de datos    Pendiente
-  3\. Autenticación    Pendiente
-  4\. Seguridad        Pendiente
-  5\. CRUD             Pendiente
-  6\. Administración   Pendiente
-  7\. Vistas           Pendiente
-  8\. Pruebas          Pendiente
-  9\. Despliegue       Pendiente
-  10\. Entrega         Pendiente
+  1\. Inicialización   Completada
+  2\. Base de datos    Completada (SQLite)
+  3\. Autenticación    Completada
+  4\. Seguridad        Completada
+  5\. CRUD             Completada
+  6\. Administración   Completada
+  7\. Vistas           Completada
+  8\. Pruebas          Completada
+  9\. Despliegue       Configuración Free lista; pendiente de URL pública
+  10\. Entrega         README listo; despliegue pendiente

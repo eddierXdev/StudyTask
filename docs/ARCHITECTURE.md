@@ -1,7 +1,7 @@
-# StudyTask --- Arquitectura inicial
+# StudyTask --- Arquitectura
 
-**Versión:** 1.0\
-**Estado:** Diseño aprobado
+**Versión:** 1.1\
+**Estado:** Implementado con SQLite; despliegue público pendiente
 
 ## 1. Objetivo arquitectónico
 
@@ -18,7 +18,8 @@ complementa MVC; no lo sustituye.
   ------------------- ------------------------------------
   Node.js 24 LTS      Entorno de ejecución
   Express             Servidor web y routing
-  PostgreSQL          Base de datos relacional
+  SQLite              Base de datos relacional en archivo local
+  sqlite3             Driver SQLite de Sequelize
   Sequelize           ORM
   EJS                 Renderizado de vistas
   Bootstrap           Diseño responsive
@@ -29,7 +30,12 @@ complementa MVC; no lo sustituye.
   cookie-parser       Lectura de cookies
   helmet              Cabeceras HTTP de seguridad
 
-Se elegirá una solución CSRF mantenida y compatible con las versiones de
+Se conserva Sequelize porque los modelos, asociaciones, servicios y
+migraciones ya dependen de su API. Sequelize 6 carga el driver `sqlite3`
+para el dialecto SQLite; `better-sqlite3` no es compatible directamente
+con esta versión del ORM.
+
+Se elige una solución CSRF mantenida y compatible con las versiones de
 Express seleccionadas. No se debe asumir que paquetes antiguos siguen
 siendo adecuados.
 
@@ -50,7 +56,9 @@ Arquitectura MVC con servicios:
 ``` text
 studytask/
 ├── config/
+│   ├── config.js
 │   ├── database.js
+│   ├── databasePath.js
 │   └── environment.js
 ├── controllers/
 │   ├── authController.js
@@ -99,6 +107,12 @@ studytask/
 │   │   └── styles.css
 │   └── js/
 │       └── main.js
+├── scripts/
+│   ├── checkDatabase.js
+│   ├── createAdmin.js
+│   └── initDatabase.js
+├── data/
+│   └── .gitkeep
 ├── tests/
 ├── docs/
 ├── .env
@@ -117,8 +131,14 @@ justifica, pero no se deben añadir carpetas o capas sin motivo.
 
 ### 5.1 Configuración
 
-`config/database.js` - Crear la instancia Sequelize. - Configurar
-PostgreSQL. - Exportar la conexión.
+`config/database.js` - Crear la instancia Sequelize. - Configurar SQLite
+con el driver `sqlite3`. - Exportar la conexión.
+
+`config/databasePath.js` - Resolver la ruta de `DATABASE_STORAGE`. -
+Aplicar el valor por defecto `data/studytask.db`.
+
+`config/config.js` - Proporcionar la configuración de Sequelize CLI para
+entornos `development`, `test` y `production`.
 
 `config/environment.js` - Leer y validar variables de entorno. - Fallar
 de forma clara si falta una variable obligatoria.
@@ -184,7 +204,7 @@ revelar detalles internos en producción.
 5.  Se ejecutan autorización y validación cuando correspondan.
 6.  El controlador invoca el servicio.
 7.  El servicio aplica reglas de negocio y usa Sequelize.
-8.  Sequelize consulta o modifica PostgreSQL.
+8.  Sequelize consulta o modifica el archivo SQLite.
 9.  El controlador renderiza EJS o redirige.
 10. Express devuelve la respuesta.
 
@@ -276,18 +296,20 @@ simplificar formularios HTML EJS. No usar GET para modificar datos.
 ``` env
 PORT=3000
 NODE_ENV=development
-DATABASE_URL=
+DATABASE_STORAGE=data/studytask.db
 JWT_SECRET=
+CSRF_SECRET=
 JWT_EXPIRES_IN=1h
 COOKIE_NAME=studytask_token
+BCRYPT_ROUNDS=12
 ```
 
 La configuración de cookie se derivará del entorno. No se guardarán
 secretos reales en `.env.example`.
 
 En producción: - `NODE_ENV=production`. - HTTPS activo. - Cookie
-`Secure`. - Secreto JWT fuerte. - Conexión PostgreSQL de producción. -
-No exponer stack traces al usuario.
+`Secure`. - Secreto JWT fuerte. - Archivo SQLite en un volumen
+persistente. - No exponer stack traces al usuario.
 
 ## 11. Seguridad adicional
 
@@ -304,18 +326,33 @@ No exponer stack traces al usuario.
 
 Plataforma prevista: Render.
 
-Componentes: - Servicio web Node.js. - PostgreSQL. - Variables de
-entorno. - HTTPS. - Comando de inicio de producción.
+Componentes: - Servicio web Node.js. - Archivo SQLite en `/tmp` para el
+plan gratuito. - Variables de entorno. - HTTPS. - Comando de inicio de
+producción que ejecuta las migraciones y el bootstrap opcional del
+administrador.
 
-La estrategia de migraciones de base de datos debe definirse antes de
-producción. No depender de `sequelize.sync({ alter: true })` como
-mecanismo de migración permanente en producción.
+El plan **Free** de Render no ofrece discos persistentes ni Shell. El
+`render.yaml` usa `DATABASE_STORAGE=/tmp/studytask.db`; la base funciona,
+pero se pierde en cada reinicio o redespliegue. Para persistencia real se
+necesita un plan de pago con un disco montado en `/var/data` y cambiar
+`DATABASE_STORAGE` a `/var/data/studytask.db`.
 
-## 13. Decisiones pendientes de implementación
+El administrador inicial se puede crear sin Shell con
+`npm run bootstrap-admin` y las variables `ADMIN_NAME`, `ADMIN_EMAIL` y
+`ADMIN_PASSWORD`; `start:production` ejecuta ese paso antes de iniciar el
+servidor. La estrategia de migraciones está definida: `npm run db:init`
+crea el archivo si falta y ejecuta las migraciones versionadas de
+`migrations/`. No se debe depender de `sequelize.sync({ alter: true })`
+como mecanismo de migración permanente.
 
-Antes de codificar, verificar: - Versiones compatibles de
-dependencias. - Solución CSRF mantenida. - Estrategia de migraciones
-Sequelize. - Método controlado para crear el primer administrador. -
-Política de errores 401/403/404 para vistas EJS.
+## 13. Decisiones de implementación resueltas
 
-No resolver estas decisiones introduciendo complejidad innecesaria.
+-   Dependencias verificadas con Node.js 24.
+-   Solución CSRF: `csrf-csrf` con cookie de sesión y token por
+    formulario.
+-   Migraciones versionadas con `sequelize-cli` y `npm run db:init`.
+-   Primer administrador mediante `npm run create-admin` en local y
+    `npm run bootstrap-admin` en entornos sin Shell.
+-   Errores 401/403/404 representados con las vistas y mensajes
+    existentes, sin exponer detalles internos.
+-   Driver SQLite: `sqlite3` por compatibilidad con Sequelize 6.

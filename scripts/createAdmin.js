@@ -177,7 +177,7 @@ async function main() {
       );
     } else {
       console.error(
-        'Error: no se pudo crear el administrador. Revisa la configuración y la conexión a PostgreSQL.'
+        'Error: no se pudo crear el administrador. Revisa la configuración y la base de datos SQLite.'
       );
     }
 

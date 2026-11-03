@@ -9,6 +9,16 @@ node_modules/
 # Local credential files
 Credenciales admin/
 
+# Local SQLite databases
+data/*.db
+data/*.db-*
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite-*
+
 # Logs
 *.log
 npm-debug.log*

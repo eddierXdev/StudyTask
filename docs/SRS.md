@@ -1,7 +1,7 @@
 # StudyTask --- Software Requirements Specification (SRS)
 
-**Versión:** 1.0\
-**Estado:** Diseño aprobado\
+**Versión:** 1.1\
+**Estado:** Implementado con SQLite; despliegue público pendiente\
 **Tipo:** Proyecto académico --- Trabajo Final de Node.js\
 **Idioma de la interfaz:** Español
 
@@ -39,7 +39,7 @@ consultar, organizar, actualizar y eliminar sus actividades académicas.
 -   Filtro por estado.
 -   Panel administrativo sencillo.
 -   Vistas dinámicas con EJS.
--   Persistencia en PostgreSQL.
+-   Persistencia en SQLite sin servidor externo.
 -   Despliegue público con HTTPS.
 
 ### 2.2 Fuera del alcance
@@ -204,7 +204,7 @@ Los únicos estados permitidos serán: - `pending` - `completed`
                                       comprensible y adaptable a móvil y
                                       escritorio.
 
-  RNF-08                              PostgreSQL debe conservar los datos
+  RNF-08                              SQLite debe conservar los datos
                                       entre reinicios.
 
   RNF-09                              Los secretos y credenciales deben
@@ -284,7 +284,7 @@ El proyecto se considerará funcionalmente completo cuando:
 -   El administrador pueda consultar usuarios sin ver hashes.
 -   El filtro por estado funcione.
 -   EJS renderice las vistas dinámicas.
--   PostgreSQL persista los datos.
+-   SQLite persista los datos.
 -   La aplicación desplegada funcione mediante HTTPS.
 
 ## 9. Relación con el enunciado académico

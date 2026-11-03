@@ -1,5 +1,6 @@
 const path = require('node:path');
 const dotenv = require('dotenv');
+const { resolveDatabaseStorage } = require('./databasePath');
 
 dotenv.config({
   path: path.join(__dirname, '..', '.env'),
@@ -9,7 +10,6 @@ dotenv.config({
 const requiredVariables = [
   'NODE_ENV',
   'PORT',
-  'DATABASE_URL',
   'JWT_SECRET',
   'JWT_EXPIRES_IN',
   'COOKIE_NAME',
@@ -42,11 +42,7 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error('PORT must be an integer between 1 and 65535');
 }
 
-const databaseUrl = values.DATABASE_URL;
-
-if (!/^postgres(ql)?:\/\//.test(databaseUrl)) {
-  throw new Error('DATABASE_URL must be a PostgreSQL connection URL');
-}
+const databaseStorage = resolveDatabaseStorage();
 
 const jwtSecret = values.JWT_SECRET;
 
@@ -108,7 +104,7 @@ const cookieBaseOptions = {
 module.exports = Object.freeze({
   nodeEnv,
   port,
-  databaseUrl,
+  databaseStorage,
   jwtSecret,
   jwtExpiresIn,
   cookieName,

@@ -1,8 +1,8 @@
 # StudyTask --- Diseño de base de datos
 
-**Motor:** PostgreSQL\
-**ORM:** Sequelize\
-**Versión del diseño:** 1.0
+**Motor:** SQLite (archivo local)\
+**ORM:** Sequelize 6 con driver `sqlite3`\
+**Versión del diseño:** 1.1
 
 ## 1. Objetivo
 
@@ -48,14 +48,14 @@ Relación: `User hasMany Task`; `Task belongsTo User`.
 
 ## 3. Tabla users
 
-  Columna      Tipo PostgreSQL orientativo   Nulo   Restricciones
-  ------------ ----------------------------- ------ ----------------------------------
-  id           INTEGER                       No     PK, autoincremental
-  name         VARCHAR(100)                  No     ---
-  email        VARCHAR(255)                  No     UNIQUE
-  password     VARCHAR(255)                  No     Hash bcrypt
-  role         VARCHAR(20) o ENUM            No     `user` / `admin`, default `user`
-  created_at   TIMESTAMP                     No     Fecha de creación
+| Columna | Tipo SQLite orientativo | Nulo | Restricciones |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | No | PK, autoincremental |
+| `name` | `VARCHAR(100)` | No | --- |
+| `email` | `VARCHAR(255)` | No | UNIQUE |
+| `password` | `VARCHAR(255)` | No | Hash bcrypt |
+| `role` | `VARCHAR(20)` | No | `user` / `admin`, default `user`, CHECK `users_role_check` |
+| `created_at` | `DATETIME` | No | Fecha de creación |
 
 ### Reglas
 
@@ -68,32 +68,17 @@ Relación: `User hasMany Task`; `Task belongsTo User`.
 
 ## 4. Tabla tasks
 
-  -----------------------------------------------------------------------
-  Columna           Tipo PostgreSQL   Nulo              Restricciones
-                    orientativo                         
-  ----------------- ----------------- ----------------- -----------------
-  id                INTEGER           No                PK,
-                                                        autoincremental
-
-  title             VARCHAR(150)      No                ---
-
-  description       TEXT              Sí                ---
-
-  subject           VARCHAR(100)      Sí                ---
-
-  due_date          DATE              Sí                ---
-
-  status            VARCHAR(20) o     No                `pending` /
-                    ENUM                                `completed`,
-                                                        default `pending`
-
-  user_id           INTEGER           No                FK a users.id
-
-  created_at        TIMESTAMP         No                Fecha de creación
-
-  updated_at        TIMESTAMP         No                Última
-                                                        actualización
-  -----------------------------------------------------------------------
+| Columna | Tipo SQLite orientativo | Nulo | Restricciones |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | No | PK, autoincremental |
+| `title` | `VARCHAR(150)` | No | --- |
+| `description` | `TEXT` | Sí | --- |
+| `subject` | `VARCHAR(100)` | Sí | --- |
+| `due_date` | `DATE` | Sí | --- |
+| `status` | `VARCHAR(20)` | No | `pending` / `completed`, default `pending`, CHECK `tasks_status_check` |
+| `user_id` | `INTEGER` | No | FK a `users.id`, ON DELETE RESTRICT, ON UPDATE CASCADE |
+| `created_at` | `DATETIME` | No | Fecha de creación |
+| `updated_at` | `DATETIME` | No | Última actualización |
 
 ### Reglas
 
@@ -111,8 +96,13 @@ Relación: `User hasMany Task`; `Task belongsTo User`.
 -   `users.id` es la clave primaria.
 -   `tasks.user_id` es la clave foránea.
 
-En Sequelize: - `User.hasMany(Task, { foreignKey: 'user_id' })` -
-`Task.belongsTo(User, { foreignKey: 'user_id' })`
+En Sequelize: - `User.hasMany(Task, { foreignKey: 'userId' })` -
+`Task.belongsTo(User, { foreignKey: 'userId' })`; el atributo se mapea a
+la columna `user_id`.
+
+SQLite aplica las claves foráneas con `PRAGMA foreign_keys = ON`.
+Sequelize activa esta opción al abrir la conexión. Las acciones son
+`ON DELETE RESTRICT` y `ON UPDATE CASCADE`.
 
 ### Política de eliminación
 
@@ -130,8 +120,15 @@ filtros.
 
 La clave foránea `tasks.user_id` debe ser NOT NULL.
 
-Los valores de `role` y `status` deben validarse tanto en la aplicación
-como, cuando sea razonable, mediante restricciones de base de datos.
+Los valores de `role` y `status` se validan en la aplicación y además
+mediante restricciones de base de datos:
+
+-   `users_role_check`: `role IN ('user', 'admin')`.
+-   `tasks_status_check`: `status IN ('pending', 'completed')`.
+
+Los índices se crean con las migraciones: `tasks_user_id_idx` y
+`tasks_status_idx`. SQLite crea además el índice único automático para
+`users.email`.
 
 ## 7. Consultas previstas
 
@@ -170,20 +167,44 @@ Consultar usuarios excluyendo explícitamente el atributo `password`.
 -   `due_date` representa una fecha límite, no una hora.
 -   La interfaz debe mostrarla de forma consistente.
 -   Evitar conversiones de zona horaria que cambien el día mostrado.
--   Los timestamps de creación y actualización se gestionarán mediante
-    Sequelize.
+-   SQLite almacena `DATE` y `DATEONLY` como texto; Sequelize conserva el
+    formato `AAAA-MM-DD`.
+-   Los timestamps de creación y actualización se gestionan mediante
+    Sequelize y se almacenan como `DATETIME`.
 
 ## 10. Migraciones
 
-Durante desarrollo se podrá utilizar una estrategia controlada de
-sincronización local, pero la base de datos de producción debe
-evolucionar mediante migraciones versionadas.
+La base de datos se crea y evoluciona exclusivamente mediante las
+migraciones versionadas de `migrations/`, ejecutadas con
+`sequelize-cli`.
 
-No utilizar `sync({ force: true })` con datos reales. No usar
-`sync({ alter: true })` como sustituto permanente de migraciones de
-producción.
+-   `npm run db:init` crea la carpeta y el archivo SQLite si faltan y
+    aplica las migraciones pendientes.
+-   `npm run db:migrate` aplica únicamente las migraciones pendientes.
+-   `npm run db:migrate:status` muestra el estado.
+-   No utilizar `sync({ force: true })` con datos reales.
+-   No usar `sync({ alter: true })` como sustituto de migraciones.
 
-## 11. Fuera del modelo inicial
+Las migraciones adaptadas a SQLite usan `VARCHAR` y restricciones
+`CHECK`, no tipos `ENUM` ni instrucciones `DROP TYPE` de PostgreSQL.
+
+## 11. Archivo, persistencia y copias
+
+-   La ubicación se configura con `DATABASE_STORAGE`; por defecto es
+    `data/studytask.db`.
+-   La carpeta se crea automáticamente y los archivos `.db` están
+    excluidos de Git.
+-   En local, el archivo persiste entre reinicios del servidor.
+-   En el plan gratuito de Render se usa `/tmp/studytask.db`; el archivo
+    es efímero y se pierde al reiniciar o redesplegar.
+-   Para persistencia en producción se necesita un volumen persistente,
+    como un disco de Render montado en `/var/data`.
+-   SQLite no debe compartirse entre varias instancias o procesos que
+    escriban el mismo archivo de forma simultánea.
+-   Para copias de seguridad, usa el mecanismo de backup de SQLite o
+    copia el archivo con el servicio detenido.
+
+## 12. Fuera del modelo inicial
 
 No crear tablas para: - Subjects. - Teachers. - Courses. -
 Enrollments. - Notifications. - Attachments.

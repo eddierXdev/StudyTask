@@ -381,7 +381,7 @@ async function main() {
         const { response, html } = await getPage(createCookieJar(), path);
         assertStatus(response, 404, `Static secret path ${path}`);
         assertIncludes(html, 'Error 404', `Static secret path ${path} page`);
-        assertNotIncludes(html, 'DATABASE_URL', `Static secret path ${path} leak`);
+        assertNotIncludes(html, 'DATABASE_STORAGE', `Static secret path ${path} leak`);
         assertNoInternalDetails(html);
       }
 

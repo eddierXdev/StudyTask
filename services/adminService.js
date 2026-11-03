@@ -52,6 +52,7 @@ async function listAllTasks() {
       },
     ],
     order: [
+      [sequelize.literal('Task.due_date IS NULL'), 'ASC'],
       ['dueDate', 'ASC'],
       [sequelize.col('Task.created_at'), 'DESC'],
     ],

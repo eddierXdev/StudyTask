@@ -128,9 +128,16 @@ La aplicación estará disponible en **http://localhost:3000**.
 | `JWT_EXPIRES_IN` | Sí | Duración del JWT, por ejemplo `1h`. |
 | `COOKIE_NAME` | Sí | Nombre de la cookie de sesión. |
 | `BCRYPT_ROUNDS` | No | Coste de bcrypt, entre 10 y 15. Por defecto `12`. |
+| `ADMIN_NAME` | No | Nombre del administrador inicial para `bootstrap-admin`. |
+| `ADMIN_EMAIL` | No | Correo del administrador inicial. |
+| `ADMIN_PASSWORD` | No | Contraseña del administrador inicial. |
 
 `.env` está excluido de Git. `DATABASE_STORAGE` puede ser una ruta
 relativa al proyecto o una ruta absoluta para un volumen persistente.
+
+Las variables `ADMIN_*` solo se usan para crear el administrador inicial en
+un entorno sin Shell, como el plan gratuito de Render. En local es preferible
+usar `npm run create-admin` y no guardar la contraseña en `.env`.
 
 ## Scripts disponibles
 
@@ -138,13 +145,14 @@ relativa al proyecto o una ruta absoluta para un volumen persistente.
 | --- | --- |
 | `npm start` | Inicia el servidor con la base ya inicializada. |
 | `npm run dev` | Inicia el servidor en modo observación. |
-| `npm run start:production` | Inicializa la base y arranca el servidor. |
+| `npm run start:production` | Inicializa la base, crea el administrador si se configuró y arranca. |
 | `npm run db:init` | Crea la base si falta y ejecuta las migraciones. |
 | `npm run db:migrate` | Ejecuta las migraciones pendientes. |
 | `npm run db:migrate:status` | Muestra el estado de las migraciones. |
 | `npm run db:migrate:undo` | Revierte la última migración. |
 | `npm run db:check` | Comprueba la conexión y muestra el número de tablas. |
-| `npm run create-admin` | Crea un administrador controlado. |
+| `npm run create-admin` | Crea un administrador controlado de forma interactiva. |
+| `npm run bootstrap-admin` | Crea el administrador desde `ADMIN_NAME`, `ADMIN_EMAIL` y `ADMIN_PASSWORD`. |
 | `npm test` | Ejecuta pruebas de humo, integridad y flujo completo. |
 | `npm run test:production` | Ejecuta la suite con cookies `Secure` y cabeceras de producción. |
 
@@ -193,7 +201,7 @@ las reglas de negocio y los modelos representan la persistencia.
   hashes).
 
 El registro público siempre crea usuarios con rol `user`. Para crear un
-administrador:
+administrador local:
 
 ```bash
 npm run create-admin
@@ -202,6 +210,12 @@ npm run create-admin
 El script solicita nombre, correo y contraseña. También acepta
 `ADMIN_NAME`, `ADMIN_EMAIL` y `ADMIN_PASSWORD` para ejecución no
 interactiva. No guardes esas variables en archivos del proyecto.
+
+En Render, el plan gratuito no tiene Shell. Define `ADMIN_NAME`,
+`ADMIN_EMAIL` y `ADMIN_PASSWORD` como variables secretas del servicio;
+`npm run start:production` ejecutará `bootstrap-admin` y creará la cuenta si
+no existe. Consulta [DEPLOYMENT.md](DEPLOYMENT.md) para el procedimiento y
+las limitaciones de persistencia.
 
 ## Rutas principales
 
@@ -249,6 +263,8 @@ Relación: `User hasMany Task` / `Task belongsTo User`.
 
 - El archivo por defecto es `data/studytask.db`.
 - La carpeta `data/` se crea automáticamente.
+- En Render con plan Free se usa `/tmp/studytask.db`; ese archivo es
+  efímero y se pierde al reiniciar o redesplegar.
 - Los archivos SQLite están excluidos mediante `.gitignore`; nunca deben
   subirse al repositorio.
 - Las migraciones viven en `migrations/` y se ejecutan con
@@ -298,17 +314,25 @@ de producción real.**
 
 La guía completa está en [DEPLOYMENT.md](DEPLOYMENT.md).
 
-El `render.yaml` incluido despliega en **Render** con:
+El `render.yaml` incluido despliega en **Render** con el plan **Free**:
 
-- Servicio web Node.js.
-- Disco persistente de 1 GB montado en `/var/data`.
-- `DATABASE_STORAGE=/var/data/studytask.db`.
-- Migraciones ejecutadas al iniciar (`npm run start:production`).
+- Servicio web Node.js sin método de pago.
+- Sin disco persistente.
+- `DATABASE_STORAGE=/tmp/studytask.db`.
+- Migraciones y administrador inicial ejecutados al arrancar
+  (`npm run start:production`).
 - Secretos `JWT_SECRET` y `CSRF_SECRET` generados por la plataforma.
+- Instalación de producción con `npm ci --omit=dev`; `sequelize-cli`
+  forma parte de las dependencias necesarias para migrar al arrancar.
 
-> **Importante:** Render solo ofrece discos persistentes en servicios de
-> pago. Con el plan gratuito, el archivo SQLite se pierde en cada
-> redespliegue o reinicio.
+> **Importante:** el sistema de archivos del plan Free es efímero. La base
+> SQLite y los datos creados se pierden en cada reinicio, suspensión o
+> redespliegue. Es válido para una demostración, no para conservar datos
+> reales. Para persistencia se necesita un plan de pago con disco.
+
+Para crear el administrador en Render sin Shell, define `ADMIN_NAME`,
+`ADMIN_EMAIL` y `ADMIN_PASSWORD` en las variables secretas del servicio. La
+guía completa está en [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Documentación
 

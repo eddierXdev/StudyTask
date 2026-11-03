@@ -23,7 +23,7 @@ module.exports = {
         allowNull: false,
       },
       role: {
-        type: Sequelize.ENUM('user', 'admin'),
+        type: Sequelize.STRING(20),
         allowNull: false,
         defaultValue: 'user',
       },
@@ -33,12 +33,16 @@ module.exports = {
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
     });
+
+    await queryInterface.addConstraint('users', {
+      fields: ['role'],
+      type: 'check',
+      where: { role: ['user', 'admin'] },
+      name: 'users_role_check',
+    });
   },
 
   async down(queryInterface) {
     await queryInterface.dropTable('users');
-    await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_users_role";'
-    );
   },
 };

@@ -1,4 +1,8 @@
-# Primer prompt para OpenCode
+# Primer prompt para OpenCode (documento histórico)
+
+Este prompt corresponde al inicio del proyecto. La implementación y la
+migración a SQLite ya están completadas; para trabajar en el estado
+actual, usa `AGENTS.md`.
 
 Copia este mensaje en OpenCode después de colocar los archivos de
 documentación en la raíz del proyecto.
@@ -14,8 +18,8 @@ documentación de `docs/`:
 -   `docs/DEVELOPMENT_PLAN.md`
 
 El proyecto se llama **StudyTask**. Es un gestor sencillo de tareas
-académicas desarrollado con Node.js, Express, PostgreSQL, Sequelize,
-EJS, Bootstrap y JWT en cookie HttpOnly.
+académicas desarrollado con Node.js, Express, SQLite mediante `sqlite3`,
+Sequelize, EJS, Bootstrap y JWT en cookie HttpOnly.
 
 **IMPORTANTE: todavía no quiero que programes ni inicialices el
 proyecto.**

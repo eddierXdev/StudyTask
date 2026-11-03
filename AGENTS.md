@@ -44,9 +44,9 @@ Roles: - `user`: gestiona únicamente sus propias tareas. - `admin`:
 puede consultar todas las tareas, ver sus detalles, eliminarlas y
 consultar los usuarios registrados.
 
-Tecnologías acordadas: - Node.js 24 LTS - Express - PostgreSQL -
-Sequelize - EJS - Bootstrap - JWT almacenado en cookie HttpOnly -
-bcrypt - dotenv - express-validator - cookie-parser - helmet -
+Tecnologías acordadas: - Node.js 24 LTS - Express - SQLite mediante
+`sqlite3` - Sequelize - EJS - Bootstrap - JWT almacenado en cookie
+HttpOnly - bcrypt - dotenv - express-validator - cookie-parser - helmet -
 protección CSRF compatible con las versiones seleccionadas
 
 No introduzcas React, Vue, Angular, APIs externas, microservicios ni
@@ -136,9 +136,14 @@ diseño: - `docs/SRS.md` - `docs/ARCHITECTURE.md` - `docs/DATABASE.md` -
 No reescribas documentos completos por cambios menores. Conserva
 decisiones previas que no hayan sido modificadas.
 
-## 9. Estado inicial del proyecto
+## 9. Estado del proyecto
 
-**Estado: diseño aprobado, implementación no iniciada.**
+**Estado: implementación completada; migración a SQLite completada;
+configuración para Render Free completada; despliegue público pendiente
+de verificación.**
 
-La primera acción permitida es revisar y comentar la documentación.
-Espera una instrucción explícita del usuario para comenzar a programar.
+La documentación de `docs/` se mantiene sincronizada con la versión
+SQLite. El plan gratuito de Render usa almacenamiento efímero: la
+aplicación funciona, pero los datos se pierden al reiniciar. Para
+persistencia se requiere un plan de pago con disco, según
+`DEPLOYMENT.md`.
