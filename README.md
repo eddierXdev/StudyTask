@@ -14,10 +14,6 @@ actualizar tareas de estudio. Cada estudiante gestiona únicamente sus
 propias tareas, mientras que un administrador puede consultar todas las
 tareas y el listado de usuarios registrados.
 
-Proyecto final del curso de **Node.js**, construido con arquitectura MVC
-y una capa de servicios, sin servicios externos ni base de datos
-administrada.
-
 ---
 
 ## Tabla de contenido
