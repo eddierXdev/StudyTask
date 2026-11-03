@@ -1,0 +1,75 @@
+<section class="task-page">
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Administración</p>
+      <h1><%= task.title %></h1>
+    </div>
+    <a class="btn btn-outline-primary" href="/admin/tasks">
+      Volver al listado global
+    </a>
+  </div>
+
+  <div class="task-detail-header">
+    <span class="status-badge status-<%= task.status %>">
+      <%= task.status === 'completed' ? 'Completada' : 'Pendiente' %>
+    </span>
+    <span class="task-detail-id">Tarea #<%= task.id %></span>
+  </div>
+
+  <dl class="task-details">
+    <div>
+      <dt>Título</dt>
+      <dd><%= task.title %></dd>
+    </div>
+    <div>
+      <dt>Descripción</dt>
+      <dd class="preserve-lines">
+        <%= task.description || 'Sin descripción' %>
+      </dd>
+    </div>
+    <div>
+      <dt>Asignatura</dt>
+      <dd><%= task.subject || 'Sin asignatura' %></dd>
+    </div>
+    <div>
+      <dt>Fecha límite</dt>
+      <dd>
+        <%= task.dueDate
+          ? task.dueDate.split('-').reverse().join('/')
+          : 'Sin fecha' %>
+      </dd>
+    </div>
+    <div>
+      <dt>Estado</dt>
+      <dd><%= task.status === 'completed' ? 'Completada' : 'Pendiente' %></dd>
+    </div>
+    <div>
+      <dt>Propietario</dt>
+      <dd>
+        <%= task.owner ? task.owner.name : 'Sin propietario' %>
+        <% if (task.owner) { %>
+          <span class="task-owner-email"><%= task.owner.email %></span>
+        <% } %>
+      </dd>
+    </div>
+    <div>
+      <dt>Creada</dt>
+      <dd><%= new Date(task.created_at).toLocaleString('es-ES') %></dd>
+    </div>
+    <div>
+      <dt>Última actualización</dt>
+      <dd><%= new Date(task.updated_at).toLocaleString('es-ES') %></dd>
+    </div>
+  </dl>
+
+  <div class="task-actions">
+    <form
+      method="post"
+      action="/admin/tasks/<%= task.id %>/delete"
+      data-confirm="¿Eliminar esta tarea? Esta acción no se puede deshacer."
+    >
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+      <button class="btn btn-danger" type="submit">Eliminar tarea</button>
+    </form>
+  </div>
+</section>

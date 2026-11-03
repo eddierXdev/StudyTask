@@ -1,0 +1,23 @@
+<section class="task-page">
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Editar tarea</p>
+      <h1>Editar tarea</h1>
+    </div>
+    <a class="btn btn-outline-primary" href="/tasks/<%= task.id %>">
+      Volver al detalle
+    </a>
+  </div>
+
+  <%- include('_errors') %>
+
+  <p class="task-form-note">
+    El estado se cambia desde el detalle de la tarea.
+  </p>
+
+  <%- include('_form', {
+    formAction: `/tasks/${task.id}/update`,
+    submitLabel: 'Guardar cambios',
+    cancelUrl: `/tasks/${task.id}`
+  }) %>
+</section>

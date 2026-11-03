@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="StudyTask, gestor sencillo de tareas académicas."
+    />
+    <title><%= typeof title !== 'undefined' && title ? `${title} | StudyTask` : 'StudyTask' %></title>
+    <link
+      rel="stylesheet"
+      href="/vendor/bootstrap/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <a class="visually-hidden-focusable" href="#main-content">
+      Saltar al contenido
+    </a>
+
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+
+    <main id="main-content" class="container app-main">
+      <%- include('../partials/messages') %>
+      <%- body %>
+    </main>
+
+    <%- include('../partials/footer') %>
+    <script
+      src="/vendor/bootstrap/js/bootstrap.bundle.min.js"
+      defer
+    ></script>
+    <script src="/js/main.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,22 @@
+<section class="task-page">
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Nueva tarea</p>
+      <h1>Crear tarea</h1>
+    </div>
+    <a class="btn btn-outline-primary" href="/tasks">Volver a mis tareas</a>
+  </div>
+
+  <%- include('_errors') %>
+
+  <p class="task-form-note">
+    La tarea se creará con estado <strong>pendiente</strong> y quedará
+    asociada a tu cuenta.
+  </p>
+
+  <%- include('_form', {
+    formAction: '/tasks',
+    submitLabel: 'Crear tarea',
+    cancelUrl: '/tasks'
+  }) %>
+</section>

@@ -1,0 +1,7 @@
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger" role="alert"><%= error %></div>
+<% } %>
+
+<% if (typeof success !== 'undefined' && success) { %>
+  <div class="alert alert-success" role="status"><%= success %></div>
+<% } %>

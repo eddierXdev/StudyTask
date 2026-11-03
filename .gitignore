@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Local credential files
+Credenciales admin/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test and coverage output
+coverage/
+
+# Operating system files
+.DS_Store
+Thumbs.db

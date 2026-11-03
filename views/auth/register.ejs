@@ -1,0 +1,72 @@
+<section class="auth-card card shadow-sm">
+  <p class="eyebrow">Registro</p>
+  <h1 class="h3">Crear cuenta</h1>
+  <p class="auth-intro">
+    Registra una cuenta para organizar tus tareas académicas.
+  </p>
+
+  <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+    <div class="alert alert-danger" role="alert">
+      <ul class="error-list mb-0">
+        <% errors.forEach((validationError) => { %>
+          <li><%= validationError.msg %></li>
+        <% }); %>
+      </ul>
+    </div>
+  <% } %>
+
+  <form class="auth-form" method="post" action="/register" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+    <div class="mb-3">
+      <label class="form-label" for="name">Nombre</label>
+      <input
+        class="form-control"
+        id="name"
+        name="name"
+        type="text"
+        value="<%= typeof formData !== 'undefined' && formData.name ? formData.name : '' %>"
+        autocomplete="name"
+        maxlength="100"
+        required
+      />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="email">Correo electrónico</label>
+      <input
+        class="form-control"
+        id="email"
+        name="email"
+        type="email"
+        value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>"
+        autocomplete="email"
+        maxlength="255"
+        required
+      />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="password">Contraseña</label>
+      <input
+        class="form-control"
+        id="password"
+        name="password"
+        type="password"
+        aria-describedby="passwordHelp"
+        autocomplete="new-password"
+        minlength="8"
+        required
+      />
+      <div class="form-text" id="passwordHelp">
+        Debe tener al menos 8 caracteres.
+      </div>
+    </div>
+
+    <button class="btn btn-primary w-100" type="submit">Crear cuenta</button>
+  </form>
+
+  <p class="auth-switch text-center">
+    ¿Ya tienes cuenta? <a href="/login">Iniciar sesión</a>
+  </p>
+</section>

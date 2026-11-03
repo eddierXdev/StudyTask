@@ -1,0 +1,31 @@
+<section class="dashboard card shadow-sm">
+  <p class="eyebrow">Panel personal</p>
+  <h1 class="h3">Hola, <%= currentUser.name %></h1>
+  <p class="text-muted">Has iniciado sesión correctamente.</p>
+
+  <dl class="account-details">
+    <div>
+      <dt>Correo electrónico</dt>
+      <dd><%= currentUser.email %></dd>
+    </div>
+    <div>
+      <dt>Rol</dt>
+      <dd>
+        <span class="role-badge role-<%= currentUser.role %>">
+          <%= currentUser.role === 'admin' ? 'Administrador' : 'Usuario' %>
+        </span>
+      </dd>
+    </div>
+  </dl>
+
+  <% if (currentUser.role === 'user') { %>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="/tasks">Ir a mis tareas</a>
+    </div>
+  <% } else { %>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="/admin/tasks">Gestionar tareas</a>
+      <a class="btn btn-outline-primary" href="/admin/users">Ver usuarios</a>
+    </div>
+  <% } %>
+</section>

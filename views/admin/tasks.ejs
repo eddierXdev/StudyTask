@@ -1,0 +1,70 @@
+<section class="task-page">
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Administración</p>
+      <h1>Todas las tareas</h1>
+      <p class="page-intro">
+        Consulta las tareas de todos los usuarios y accede a su detalle.
+      </p>
+    </div>
+    <a class="btn btn-outline-primary" href="/admin/users">Ver usuarios</a>
+  </div>
+
+  <% if (tasks.length === 0) { %>
+    <div class="empty-state">
+      <h2>No hay tareas registradas</h2>
+      <p>Todavía no existen tareas en la aplicación.</p>
+    </div>
+  <% } else { %>
+    <div class="task-list">
+      <% tasks.forEach((task) => { %>
+        <article class="task-card">
+          <div class="task-card-main">
+            <div class="task-card-heading">
+              <h2>
+                <a href="/admin/tasks/<%= task.id %>"><%= task.title %></a>
+              </h2>
+              <span class="status-badge status-<%= task.status %>">
+                <%= task.status === 'completed' ? 'Completada' : 'Pendiente' %>
+              </span>
+            </div>
+
+            <% if (task.description) { %>
+              <p class="task-description"><%= task.description %></p>
+            <% } %>
+
+            <dl class="task-meta">
+              <div>
+                <dt>Propietario</dt>
+                <dd>
+                  <%= task.owner ? task.owner.name : 'Sin propietario' %>
+                  <% if (task.owner) { %>
+                    <span class="task-owner-email"><%= task.owner.email %></span>
+                  <% } %>
+                </dd>
+              </div>
+              <div>
+                <dt>Asignatura</dt>
+                <dd><%= task.subject || 'Sin asignatura' %></dd>
+              </div>
+              <div>
+                <dt>Fecha límite</dt>
+                <dd>
+                  <%= task.dueDate
+                    ? task.dueDate.split('-').reverse().join('/')
+                    : 'Sin fecha' %>
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="task-card-actions">
+            <a class="btn btn-outline-primary btn-sm" href="/admin/tasks/<%= task.id %>">
+              Ver detalle
+            </a>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+  <% } %>
+</section>

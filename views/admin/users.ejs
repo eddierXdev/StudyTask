@@ -1,0 +1,47 @@
+<section class="task-page">
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Administración</p>
+      <h1>Usuarios registrados</h1>
+      <p class="page-intro">
+        Consulta las cuentas de la aplicación sin datos sensibles.
+      </p>
+    </div>
+    <a class="btn btn-outline-primary" href="/admin/tasks">Ver tareas</a>
+  </div>
+
+  <% if (users.length === 0) { %>
+    <div class="empty-state">
+      <h2>No hay usuarios registrados</h2>
+      <p>Todavía no existen cuentas en la aplicación.</p>
+    </div>
+  <% } else { %>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle data-table">
+        <caption class="visually-hidden">Usuarios registrados</caption>
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Correo electrónico</th>
+            <th scope="col">Rol</th>
+            <th scope="col">Registro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% users.forEach((user) => { %>
+            <tr>
+              <td><%= user.name %></td>
+              <td><%= user.email %></td>
+              <td>
+                <span class="role-badge role-<%= user.role %>">
+                  <%= user.role === 'admin' ? 'Administrador' : 'Usuario' %>
+                </span>
+              </td>
+              <td><%= new Date(user.created_at).toLocaleString('es-ES') %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

@@ -1,0 +1,103 @@
+<%
+  const activePath = typeof currentPath !== 'undefined' ? currentPath : '';
+  const isActive = (path, exact = false) => {
+    if (exact) {
+      return activePath === path;
+    }
+
+    return activePath === path || activePath.startsWith(`${path}/`);
+  };
+  const isAuthenticated =
+    typeof currentUser !== 'undefined' && Boolean(currentUser);
+%>
+<nav class="navbar navbar-expand-lg site-navbar" aria-label="Navegación principal">
+  <div class="container">
+    <button
+      class="navbar-toggler ms-auto"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#mainNavigation"
+      aria-controls="mainNavigation"
+      aria-expanded="false"
+      aria-label="Abrir menú de navegación"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNavigation">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+        <% if (isAuthenticated) { %>
+          <li class="nav-item">
+            <a
+              class="nav-link <%= isActive('/dashboard', true) ? 'active' : '' %>"
+              href="/dashboard"
+              <% if (isActive('/dashboard', true)) { %>aria-current="page"<% } %>
+            >Panel</a>
+          </li>
+
+          <% if (currentUser.role === 'user') { %>
+            <li class="nav-item">
+              <a
+                class="nav-link <%= isActive('/tasks') ? 'active' : '' %>"
+                href="/tasks"
+                <% if (isActive('/tasks')) { %>aria-current="page"<% } %>
+              >Mis tareas</a>
+            </li>
+          <% } else if (currentUser.role === 'admin') { %>
+            <li class="nav-item">
+              <a
+                class="nav-link <%= isActive('/admin/tasks') ? 'active' : '' %>"
+                href="/admin/tasks"
+                <% if (isActive('/admin/tasks')) { %>aria-current="page"<% } %>
+              >Tareas globales</a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link <%= isActive('/admin/users') ? 'active' : '' %>"
+                href="/admin/users"
+                <% if (isActive('/admin/users')) { %>aria-current="page"<% } %>
+              >Usuarios</a>
+            </li>
+          <% } %>
+
+          <li class="nav-item d-none d-lg-block">
+            <span class="navbar-text user-greeting">
+              Hola, <%= currentUser.name %>
+            </span>
+          </li>
+
+          <li class="nav-item">
+            <form class="nav-logout" method="post" action="/logout">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+              <button class="nav-link nav-link-button" type="submit">
+                Cerrar sesión
+              </button>
+            </form>
+          </li>
+        <% } else { %>
+          <li class="nav-item">
+            <a
+              class="nav-link <%= isActive('/', true) ? 'active' : '' %>"
+              href="/"
+              <% if (isActive('/', true)) { %>aria-current="page"<% } %>
+            >Inicio</a>
+          </li>
+          <li class="nav-item">
+            <a
+              class="nav-link <%= isActive('/login', true) ? 'active' : '' %>"
+              href="/login"
+              <% if (isActive('/login', true)) { %>aria-current="page"<% } %>
+            >Iniciar sesión</a>
+          </li>
+          <li class="nav-item">
+            <a
+              class="nav-link <%= isActive('/register', true) ? 'active' : '' %>"
+              href="/register"
+              <% if (isActive('/register', true)) { %>aria-current="page"<% } %>
+            >Crear cuenta</a>
+          </li>
+        <% } %>
+      </ul>
+    </div>
+  </div>
+</nav>

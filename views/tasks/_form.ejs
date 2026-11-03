@@ -1,0 +1,65 @@
+<form class="task-form" method="post" action="<%= formAction %>" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+  <div class="mb-3">
+    <label class="form-label" for="title">Título</label>
+    <input
+      class="form-control"
+      id="title"
+      name="title"
+      type="text"
+      value="<%= formData.title %>"
+      maxlength="150"
+      required
+    />
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label" for="description">Descripción</label>
+    <textarea
+      class="form-control"
+      id="description"
+      name="description"
+      rows="6"
+      maxlength="5000"
+      aria-describedby="descriptionHelp"
+    ><%= formData.description %></textarea>
+    <div class="form-text" id="descriptionHelp">
+      Opcional. Puedes añadir los detalles que necesites.
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label" for="subject">Asignatura</label>
+    <input
+      class="form-control"
+      id="subject"
+      name="subject"
+      type="text"
+      value="<%= formData.subject %>"
+      maxlength="100"
+      aria-describedby="subjectHelp"
+    />
+    <div class="form-text" id="subjectHelp">Opcional.</div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label" for="dueDate">Fecha límite</label>
+    <input
+      class="form-control"
+      id="dueDate"
+      name="dueDate"
+      type="date"
+      value="<%= formData.dueDate %>"
+      aria-describedby="dueDateHelp"
+    />
+    <div class="form-text" id="dueDateHelp">
+      Opcional. Se guarda únicamente la fecha.
+    </div>
+  </div>
+
+  <div class="task-form-actions">
+    <button class="btn btn-primary" type="submit"><%= submitLabel %></button>
+    <a class="btn btn-outline-primary" href="<%= cancelUrl %>">Cancelar</a>
+  </div>
+</form>

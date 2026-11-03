@@ -1,0 +1,91 @@
+<section class="task-page">
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Organización académica</p>
+      <h1>Mis tareas</h1>
+      <p class="page-intro">
+        Consulta y organiza únicamente las tareas de tu cuenta.
+      </p>
+    </div>
+    <a class="btn btn-primary" href="/tasks/create">Nueva tarea</a>
+  </div>
+
+  <nav class="task-filters" aria-label="Filtrar tareas por estado">
+    <a
+      href="/tasks"
+      class="<%= statusFilter === 'all' ? 'is-active' : '' %>"
+      <% if (statusFilter === 'all') { %>aria-current="page"<% } %>
+    >Todas</a>
+    <a
+      href="/tasks?status=pending"
+      class="<%= statusFilter === 'pending' ? 'is-active' : '' %>"
+      <% if (statusFilter === 'pending') { %>aria-current="page"<% } %>
+    >Pendientes</a>
+    <a
+      href="/tasks?status=completed"
+      class="<%= statusFilter === 'completed' ? 'is-active' : '' %>"
+      <% if (statusFilter === 'completed') { %>aria-current="page"<% } %>
+    >Completadas</a>
+  </nav>
+
+  <% if (tasks.length === 0) { %>
+    <div class="empty-state">
+      <h2>No hay tareas en esta vista</h2>
+      <p>
+        <% if (statusFilter === 'pending') { %>
+          No tienes tareas pendientes.
+        <% } else if (statusFilter === 'completed') { %>
+          Todavía no has completado ninguna tarea.
+        <% } else { %>
+          Crea tu primera tarea para empezar a organizar tu trabajo.
+        <% } %>
+      </p>
+      <a class="btn btn-primary" href="/tasks/create">Crear una tarea</a>
+    </div>
+  <% } else { %>
+    <div class="task-list">
+      <% tasks.forEach((task) => { %>
+        <article class="task-card">
+          <div class="task-card-main">
+            <div class="task-card-heading">
+              <h2>
+                <a href="/tasks/<%= task.id %>"><%= task.title %></a>
+              </h2>
+              <span class="status-badge status-<%= task.status %>">
+                <%= task.status === 'completed' ? 'Completada' : 'Pendiente' %>
+              </span>
+            </div>
+
+            <% if (task.description) { %>
+              <p class="task-description"><%= task.description %></p>
+            <% } %>
+
+            <dl class="task-meta">
+              <div>
+                <dt>Asignatura</dt>
+                <dd><%= task.subject || 'Sin asignatura' %></dd>
+              </div>
+              <div>
+                <dt>Fecha límite</dt>
+                <dd>
+                  <%= task.dueDate
+                    ? task.dueDate.split('-').reverse().join('/')
+                    : 'Sin fecha' %>
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="task-card-actions">
+            <a class="btn btn-outline-primary btn-sm" href="/tasks/<%= task.id %>">
+              Ver detalle
+            </a>
+            <a class="btn btn-outline-primary btn-sm" href="/tasks/<%= task.id %>/edit">
+              Editar
+            </a>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+  <% } %>
+</section>
