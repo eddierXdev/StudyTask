@@ -139,11 +139,12 @@ decisiones previas que no hayan sido modificadas.
 ## 9. Estado del proyecto
 
 **Estado: implementación completada; migración a SQLite completada;
-configuración para Render Free completada; despliegue público pendiente
-de verificación.**
+configuración para Render Free completada; despliegue público bloqueado
+por el requisito de pago de Render.**
 
 La documentación de `docs/` se mantiene sincronizada con la versión
 SQLite. El plan gratuito de Render usa almacenamiento efímero: la
-aplicación funciona, pero los datos se pierden al reiniciar. Para
-persistencia se requiere un plan de pago con disco, según
-`DEPLOYMENT.md`.
+aplicación funciona, pero los datos se pierden al reiniciar. Además,
+Render exige un método de pago para crear el servicio en esta cuenta,
+aunque se use el plan Free. Para persistencia se requiere un plan de pago
+con disco, según `DEPLOYMENT.md`.

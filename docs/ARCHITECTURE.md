@@ -335,7 +335,9 @@ El plan **Free** de Render no ofrece discos persistentes ni Shell. El
 `render.yaml` usa `DATABASE_STORAGE=/tmp/studytask.db`; la base funciona,
 pero se pierde en cada reinicio o redespliegue. Para persistencia real se
 necesita un plan de pago con un disco montado en `/var/data` y cambiar
-`DATABASE_STORAGE` a `/var/data/studytask.db`.
+`DATABASE_STORAGE` a `/var/data/studytask.db`. La creación del servicio
+puede requerir un método de pago de verificación en Render, incluso con el
+plan Free.
 
 El administrador inicial se puede crear sin Shell con
 `npm run bootstrap-admin` y las variables `ADMIN_NAME`, `ADMIN_EMAIL` y

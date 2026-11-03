@@ -116,7 +116,7 @@ CSRF. - Logout.
 ### Fase 9 --- Despliegue
 
 Objetivos: - Preparar SQLite para el plan gratuito de Render. - Configurar
-servicio Node.js sin método de pago. - Configurar variables de entorno. -
+servicio Node.js con plan gratuito. - Configurar variables de entorno. -
 Ejecutar migraciones. - Crear el administrador sin Shell. - Verificar
 HTTPS y cookies Secure. - Probar aplicación publicada.
 
@@ -124,10 +124,13 @@ Criterios: - URL pública funcional. - Autenticación funciona en
 producción. - No se exponen secretos. - La pérdida de datos por el
 sistema de archivos efímero está documentada.
 
-Estado: **Configuración gratuita preparada; despliegue público pendiente**.
-Render Free no ofrece disco persistente ni Shell; la base SQLite vive en
-`/tmp` y se reinicia con el servicio. El administrador se crea con las
-variables `ADMIN_*`.
+Estado: **Configuración gratuita preparada; despliegue bloqueado por
+Render**. Render Free no ofrece disco persistente ni Shell; la base SQLite
+vive en `/tmp` y se reinicia con el servicio. El administrador se crea con
+las variables `ADMIN_*`. La API de Render devuelve
+`402 Payment information is required` incluso con `plan: free`, por lo que
+la cuenta necesita un método de pago de verificación antes de crear el
+servicio.
 
 ### Fase 10 --- Entrega
 

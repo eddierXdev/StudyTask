@@ -316,7 +316,7 @@ La guía completa está en [DEPLOYMENT.md](DEPLOYMENT.md).
 
 El `render.yaml` incluido despliega en **Render** con el plan **Free**:
 
-- Servicio web Node.js sin método de pago.
+- Servicio web Node.js con plan gratuito.
 - Sin disco persistente.
 - `DATABASE_STORAGE=/tmp/studytask.db`.
 - Migraciones y administrador inicial ejecutados al arrancar
@@ -329,6 +329,12 @@ El `render.yaml` incluido despliega en **Render** con el plan **Free**:
 > SQLite y los datos creados se pierden en cada reinicio, suspensión o
 > redespliegue. Es válido para una demostración, no para conservar datos
 > reales. Para persistencia se necesita un plan de pago con disco.
+
+Render puede exigir un método de pago para crear el servicio, aunque se
+seleccione el plan Free. En esta cuenta, la API devolvió
+`402 Payment information is required`; sin una tarjeta de verificación no
+se puede completar el despliegue desde Render. El `render.yaml` ya está
+preparado para cuando ese requisito esté resuelto.
 
 Para crear el administrador en Render sin Shell, define `ADMIN_NAME`,
 `ADMIN_EMAIL` y `ADMIN_PASSWORD` en las variables secretas del servicio. La

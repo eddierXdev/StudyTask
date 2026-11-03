@@ -1,8 +1,8 @@
 # Despliegue de StudyTask en Render (plan gratuito)
 
-Esta guía despliega StudyTask con **SQLite** en un **Web Service gratuito de
-Render**, sin método de pago ni disco persistente. La aplicación funciona,
-pero el sistema de archivos del plan gratuito es efímero.
+Esta guía despliega StudyTask con **SQLite** en un **Web Service con plan
+gratuito de Render**. La aplicación funciona, pero el sistema de archivos del
+plan gratuito es efímero.
 
 > **Importante:** en el plan gratuito, `studytask.db` se guarda en
 > `/tmp/studytask.db`. Render puede reiniciar, suspender o redesplegar el
@@ -10,9 +10,27 @@ pero el sistema de archivos del plan gratuito es efímero.
 > aplicación, no para conservar datos reales. Para persistencia se necesita un
 > servicio de pago con disco persistente.
 
+## 0. Bloqueo actual de Render
+
+Render exige un método de pago para crear servicios en esta cuenta, incluso
+cuando se selecciona el plan **Free**. La API respondió:
+
+```text
+402 Payment information is required to complete this request.
+```
+
+Por tanto, el Blueprint está preparado conforme a la especificación, pero
+Render bloquea la validación y la creación del servicio sin añadir una
+tarjeta de verificación.
+La tarjeta no cambia el plan Free ni genera el costo de un plan de pago; es
+un requisito de la plataforma. Si no se puede añadir ningún método de pago,
+Render no es viable para publicar esta aplicación y habría que usar otro
+proveedor.
+
 ## 1. Requisitos
 
-- Cuenta de Render sin método de pago, usando el plan **Free** del Web Service.
+- Cuenta de Render con el plan **Free** del Web Service.
+- Método de pago de verificación si Render lo exige para crear el servicio.
 - Repositorio Git accesible por Render (GitHub, GitLab o Bitbucket).
 - Node.js 24 y `npm` instalados localmente para desarrollo y pruebas.
 
