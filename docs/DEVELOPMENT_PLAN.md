@@ -20,7 +20,7 @@ con el menor alcance razonable.
 
 ### Fase 0 --- Documentación y diseño
 
-Entregables: - `AGENTS.md` - `docs/SRS.md` - `docs/ARCHITECTURE.md` -
+Entregables: - `docs/SRS.md` - `docs/ARCHITECTURE.md` -
 `docs/DATABASE.md` - `docs/DEVELOPMENT_PLAN.md`
 
 Criterio de salida: - Alcance y decisiones técnicas revisados por el

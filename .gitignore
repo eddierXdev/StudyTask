@@ -28,6 +28,13 @@ yarn-error.log*
 # Test and coverage output
 coverage/
 
+# OpenCode / AI assistant instructions and prompts
+AGENTS.md
+OPENCODE_FIRST_PROMPT.md
+.opencode/
+opencode.json
+opencode.jsonc
+
 # Operating system files
 .DS_Store
 Thumbs.db

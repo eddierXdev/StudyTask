@@ -360,7 +360,6 @@ se creó ningún recurso en Render.
 | [docs/DATABASE.md](docs/DATABASE.md) | Entidades, columnas, restricciones y relaciones. |
 | [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) | Fases de desarrollo y criterios de aceptación. |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Despliegue paso a paso en Vercel. |
-| [AGENTS.md](AGENTS.md) | Reglas de trabajo y alcance del proyecto. |
 
 ---
 
