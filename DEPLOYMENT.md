@@ -1,205 +1,218 @@
-# Despliegue de StudyTask en Render (plan gratuito)
+# Despliegue de StudyTask en Vercel
 
-Esta guía despliega StudyTask con **SQLite** en un **Web Service con plan
-gratuito de Render**. La aplicación funciona, pero el sistema de archivos del
-plan gratuito es efímero.
+StudyTask se despliega como una **Vercel Function** que ejecuta la aplicación
+Express existente. El repositorio ya incluye la configuración necesaria:
 
-> **Importante:** en el plan gratuito, `studytask.db` se guarda en
-> `/tmp/studytask.db`. Render puede reiniciar, suspender o redesplegar el
-> servicio y el archivo se pierde. El plan gratuito sirve para demostrar la
-> aplicación, no para conservar datos reales. Para persistencia se necesita un
-> servicio de pago con disco persistente.
+- `api/index.js`: punto de entrada de la función serverless.
+- `scripts/serverlessInit.js`: inicializa SQLite y el administrador opcional
+  antes de la primera petición de cada instancia.
+- `vercel.json`: duración máxima, archivos que deben acompañar a la función y
+  reescritura de todas las rutas hacia la función.
+- `.vercelignore`: evita subir secretos, la base local y archivos que no se
+  usan en producción.
 
-## 0. Bloqueo actual de Render
+> **Estado actual:** la configuración está preparada, pero todavía no hay una
+> URL pública. Falta importar el repositorio en Vercel y definir las variables
+> de entorno. No afirmes que el despliegue funciona hasta completar la
+> verificación de la sección 8.
 
-Render exige un método de pago para crear servicios en esta cuenta, incluso
-cuando se selecciona el plan **Free**. La API respondió:
+## 1. Limitación importante: SQLite es efímero en Vercel
 
-```text
-402 Payment information is required to complete this request.
+Vercel Functions tiene un sistema de archivos de **solo lectura**, excepto
+`/tmp`. Ese directorio:
+
+- Es **efímero**: se borra cuando la instancia se reinicia o se redespliega.
+- Es **propio de cada instancia**: dos instancias no comparten el archivo.
+- Tiene tamaño limitado y no está pensado para datos permanentes.
+
+Por eso esta migración mantiene SQLite en `/tmp/studytask.db` únicamente para
+una **demostración académica**. Consecuencias que debes conocer:
+
+- Los usuarios y las tareas desaparecen tras un cold start o un redespliegue.
+- Una petición puede llegar a otra instancia y no ver los datos creados en la
+  anterior.
+- No uses esta configuración para datos reales ni para varios usuarios
+  simultáneos.
+
+La aplicación sigue siendo válida para enseñar el flujo completo: registro,
+login, CRUD, roles, CSRF y panel de administración. Si necesitas persistencia
+real, consulta la sección 10.
+
+## 2. Requisitos
+
+- Cuenta gratuita en <https://vercel.com> (plan **Hobby**).
+- Repositorio del proyecto en GitHub, GitLab o Bitbucket.
+- Node.js 24 en local para ejecutar las pruebas.
+- Opcional: Vercel CLI (`npm install -g vercel`) para desplegar desde la
+  terminal.
+
+El plan Hobby es gratuito y está pensado para proyectos personales o
+académicos. No añadas datos de pago para este proyecto.
+
+## 3. Variables de entorno
+
+En **Project Settings > Environment Variables** (entorno **Production**),
+define:
+
+| Variable | Valor | Obligatoria |
+| --- | --- | --- |
+| `NODE_ENV` | `production` | No: Vercel la define automáticamente |
+| `JWT_SECRET` | Secreto aleatorio de al menos 32 caracteres | Sí |
+| `CSRF_SECRET` | Otro secreto aleatorio de al menos 32 caracteres | Sí |
+| `JWT_EXPIRES_IN` | `1h` | Sí |
+| `COOKIE_NAME` | `studytask_token` | Sí |
+| `BCRYPT_ROUNDS` | `12` | No (valor por defecto) |
+| `DATABASE_STORAGE` | `/tmp/studytask.db` | No: se usa ese valor automáticamente en Vercel |
+| `ADMIN_NAME` | Nombre del administrador inicial | No |
+| `ADMIN_EMAIL` | Correo del administrador inicial | No |
+| `ADMIN_PASSWORD` | Contraseña del administrador inicial | No |
+
+Genera los secretos en local:
+
+```bash
+node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 ```
 
-Por tanto, el Blueprint está preparado conforme a la especificación, pero
-Render bloquea la validación y la creación del servicio sin añadir una
-tarjeta de verificación.
-La tarjeta no cambia el plan Free ni genera el costo de un plan de pago; es
-un requisito de la plataforma. Si no se puede añadir ningún método de pago,
-Render no es viable para publicar esta aplicación y habría que usar otro
-proveedor.
+Usa el primer valor para `JWT_SECRET` y el segundo para `CSRF_SECRET`. No
+reutilices los secretos de desarrollo y no los guardes en el repositorio.
 
-## 1. Requisitos
+`JWT_SECRET` y `CSRF_SECRET` deben ser iguales en todas las instancias y
+redespliegues. Si los cambias, las sesiones y los formularios abiertos dejan de
+ser válidos.
 
-- Cuenta de Render con el plan **Free** del Web Service.
-- Método de pago de verificación si Render lo exige para crear el servicio.
-- Repositorio Git accesible por Render (GitHub, GitLab o Bitbucket).
-- Node.js 24 y `npm` instalados localmente para desarrollo y pruebas.
+`DATABASE_STORAGE` se resuelve automáticamente a `/tmp/studytask.db` cuando
+existe la variable `VERCEL`, que Vercel define en sus funciones. Si prefieres
+ser explícito, define `DATABASE_STORAGE=/tmp/studytask.db`.
 
-No se necesita PostgreSQL, un servidor de base de datos externo ni un disco
-de Render. La aplicación crea el archivo SQLite al arrancar.
+## 4. Desplegar desde el panel de Vercel
 
-## 2. Publicar el repositorio
+1. Sube los cambios al repositorio.
+2. Entra en <https://vercel.com/new> e importa el repositorio.
+3. Selecciona el proyecto y deja el **Root Directory** en la raíz.
+4. No selecciones un framework: Vercel detecta la función de `api/`.
+5. Añade las variables de entorno de la sección 3.
+6. Pulsa **Deploy**.
 
-Confirma que `.env`, `data/*.db` y `Credenciales admin/` no están rastreados:
+Vercel instala las dependencias, empaqueta `api/index.js` con los archivos
+indicados en `vercel.json` y publica la URL `https://<proyecto>.vercel.app`.
 
-```powershell
-git status --short
-git ls-files .env
-git ls-files "data/*.db"
+Cada push a la rama de producción vuelve a desplegar automáticamente.
+
+## 5. Desplegar con Vercel CLI
+
+```bash
+npm install -g vercel
+vercel login
+vercel link
 ```
 
-Haz commit y push de la versión que quieres desplegar. Render despliega desde
-la rama del repositorio, no desde los archivos locales sin publicar.
+Añade las variables (la CLI pedirá el valor):
 
-## 3. Crear el Blueprint
+```bash
+vercel env add JWT_SECRET production
+vercel env add CSRF_SECRET production
+vercel env add JWT_EXPIRES_IN production
+vercel env add COOKIE_NAME production
+```
 
-1. En Render, selecciona **New > Blueprint**.
-2. Conecta el repositorio y selecciona la rama principal.
-3. Render detectará `render.yaml`.
-4. Confirma el servicio web con el plan **Free**. No hay disco que confirmar.
-5. Espera a que termine el primer despliegue.
+Despliega a producción:
 
-El Blueprint configura:
+```bash
+vercel --prod
+```
 
-- Servicio web Node.js con `plan: free`.
-- Sin disco persistente.
-- `DATABASE_STORAGE=/tmp/studytask.db`.
-- Build con `npm ci --omit=dev`.
-- Migraciones y arranque con `npm run start:production`.
-- Secretos `JWT_SECRET` y `CSRF_SECRET` generados por Render.
-- HTTPS proporcionado por Render.
+Para probar un despliegue de vista previa, ejecuta `vercel` sin `--prod`.
 
-## 4. Inicialización y administrador
+## 6. Qué ocurre en la primera petición
 
-El comando de inicio es:
+`api/index.js` monta un middleware que, una sola vez por instancia:
 
-```text
+1. Crea `/tmp/studytask.db` si no existe.
+2. Ejecuta las migraciones de `migrations/` mediante `sequelize-cli`.
+3. Ejecuta `bootstrap-admin` si están definidas `ADMIN_NAME`, `ADMIN_EMAIL` y
+   `ADMIN_PASSWORD`.
+
+Después delega en la aplicación Express de siempre. Las peticiones siguientes
+de esa misma instancia reutilizan la base y no repiten las migraciones.
+
+El primer acceso puede tardar algo más por el cold start, las migraciones y el
+hash de bcrypt. La función tiene `maxDuration: 30` en `vercel.json`.
+
+## 7. Crear el administrador
+
+Vercel no ofrece una Shell para ejecutar `npm run create-admin`. Define
+`ADMIN_NAME`, `ADMIN_EMAIL` y `ADMIN_PASSWORD` como variables de entorno y
+redespliega. En la primera petición se creará la cuenta con rol `admin`.
+
+Como la base es efímera, el administrador se vuelve a crear en cada instancia
+nueva. Si necesitas el panel de administración durante la demostración,
+mantén las tres variables definidas. Usa una contraseña única y no la
+compartas fuera del panel de Vercel.
+
+El registro público siempre crea usuarios con rol `user`.
+
+## 8. Verificación de producción
+
+Con la URL pública:
+
+- Comprueba que responde por HTTPS.
+- Registra un usuario nuevo e inicia sesión.
+- Crea, edita y elimina una tarea.
+- Comprueba que otro usuario no puede acceder a esa tarea.
+- Entra con el administrador y verifica el listado de tareas y usuarios.
+- En las herramientas del navegador, confirma que la cookie de sesión tiene
+  `Secure`, `HttpOnly` y `SameSite=Lax`.
+- Confirma que `/.env`, `/package.json`, `/data/studytask.db` y
+  `/Credenciales%20admin/Credenciales.txt` responden `404`.
+- Revisa **Deployments > Functions > Logs** para detectar errores de
+  migración o de módulos nativos.
+- Fuerza un redespliegue y confirma que los datos desaparecen: es el
+  comportamiento esperado de SQLite en `/tmp`.
+
+La prueba local equivalente es:
+
+```bash
+npm test
+npm run test:production
 npm run start:production
 ```
 
-Ese comando ejecuta `npm run db:init`, después `npm run bootstrap-admin` y
-finalmente inicia `server.js`. `db:init` crea la carpeta y el archivo SQLite si
-faltan, y aplica las migraciones pendientes.
+## 9. Problemas frecuentes
 
-Como el plan gratuito no ofrece Shell, el administrador se puede crear al
-arrancar mediante variables de entorno. En **Environment** del servicio en
-Render define, como secretos:
+| Síntoma | Causa probable | Solución |
+| --- | --- | --- |
+| `Missing required environment variable` | Falta una variable obligatoria | Añádela en Vercel y redespliega |
+| `SQLITE_CANTOPEN` o error de solo lectura | `DATABASE_STORAGE` apunta a una ruta no escribible | Usa `/tmp/studytask.db` o deja que Vercel aplique el valor por defecto |
+| Error 500 en la primera petición | Falló una migración o un módulo nativo | Revisa los logs de la función |
+| `Cannot find module 'sqlite3'` o `bcrypt` | Dependencia nativa no empaquetada | Verifica que el build instala dependencias y que `includeFiles` conserva la configuración |
+| Los formularios devuelven 403 | CSRF o cookies bloqueadas | Usa HTTPS, acepta cookies y no cambies `CSRF_SECRET` entre instancias |
+| La función tarda demasiado | Cold start, migraciones o bcrypt | Revisa los logs; `maxDuration` ya es 30 segundos |
+| Los datos desaparecen | Comportamiento normal de `/tmp` | Usa una base gestionada o un host con disco persistente |
+| `413` o error de tamaño | Función demasiado grande | Revisa `includeFiles` y el tamaño de las dependencias |
 
-```text
-ADMIN_NAME=Administrador
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=una-contraseña-de-demostracion
-```
+## 10. Persistencia real
 
-- `start:production` ejecutará `npm run bootstrap-admin`.
-- Si la cuenta no existe, se crea con rol `admin`.
-- Si ya existe con rol `admin`, el arranque continúa sin duplicarla.
-- Si el correo pertenece a una cuenta `user`, **no** se eleva el rol; usa otro
-  correo.
-- En el plan gratuito, la cuenta se vuelve a crear después de cada reinicio
-  porque la base SQLite es efímera.
+SQLite necesita un sistema de archivos persistente y una sola instancia de
+escritura. En Vercel eso no es posible con el plan Hobby. Las alternativas son:
 
-Usa una contraseña exclusiva para la demostración. No reutilices
-credenciales personales. `ADMIN_PASSWORD` queda en la configuración del
-servicio de Render; no la escribas en el repositorio ni en `.env.example`.
+- **Base gestionada** (por ejemplo Turso para SQLite o Neon para PostgreSQL):
+  requiere una cuenta externa y adaptar la conexión de Sequelize. No forma
+  parte del alcance actual y debe aprobarse antes de implementarla.
+- **Host con disco persistente** (por ejemplo Alwaysdata Free): el repositorio
+  conserva `scripts/start-alwaysdata.sh` y la aplicación puede ejecutarse con
+  `npm run start:production`. Esa vía mantiene SQLite entre reinicios, pero no
+  es la configuración desplegada en Vercel.
 
-Si no defines `ADMIN_*`, la aplicación sigue funcionando con registro público
-de usuarios `user`, pero no habrá administrador.
+No copies el archivo SQLite mientras haya escrituras activas. Para una copia
+segura, detén el servicio o usa el mecanismo de backup de SQLite.
 
-## 5. Verificación de producción
+## 11. Migración desde Render
 
-Con la URL pública de Render:
+`render.yaml` se eliminó porque Render exige un método de pago de verificación
+incluso con su plan Free y su almacenamiento gratuito también es efímero. No
+se creó ningún servicio en Render, por lo que no hay datos que migrar.
 
-- Abre la URL y comprueba que responde por HTTPS.
-- Registra un usuario nuevo e inicia sesión.
-- Crea una tarea.
-- Confirma que el administrador configurado puede entrar y ver tareas y
-  usuarios.
-- En las herramientas de desarrollo del navegador, confirma que la cookie de
-  sesión tiene `Secure`, `HttpOnly` y `SameSite=Lax`.
-- Confirma que `/.env`, `/package.json`, `/data/studytask.db` y
-  `/Credenciales%20admin/Credenciales.txt` responden `404`.
-- Confirma que no aparecen contraseñas, hashes, JWT ni rutas internas en las
-  páginas.
-
-La verificación local del modo producción se puede ejecutar con:
-
-```powershell
-npm run test:production
-```
-
-Esa prueba valida cookies `Secure`, HSTS y CSP en un servidor local. No
-sustituye la comprobación de HTTPS sobre la URL pública de Render.
-
-## 6. Datos efímeros y persistencia
-
-En el plan gratuito:
-
-- El archivo SQLite vive en `/tmp/studytask.db`.
-- El servicio puede suspenderse por inactividad y reiniciarse.
-- Cada reinicio o redespliegue crea una base nueva con las migraciones.
-- Los usuarios y tareas creados se pierden.
-- El administrador configurado se vuelve a crear si se definieron las
-  variables `ADMIN_*`.
-
-No uses este plan para datos que deban conservarse. Si más adelante se
-autoriza un plan de pago, se puede añadir un disco persistente y cambiar:
-
-```yaml
-plan: starter
-disk:
-  name: studytask-data
-  mountPath: /var/data
-  sizeGB: 1
-envVars:
-  - key: DATABASE_STORAGE
-    value: /var/data/studytask.db
-```
-
-Con disco persistente, la base sobrevive a reinicios y redespliegues. El
-administrador solo se crea la primera vez. Mantén una sola instancia mientras
-uses SQLite.
-
-## 7. Copias de seguridad
-
-- En el plan gratuito no hay almacenamiento persistente que respaldar.
-- En un plan con disco, el archivo importante es
-  `/var/data/studytask.db` y sus archivos auxiliares.
-- Para una copia en caliente con `sqlite3` instalado:
-
-```text
-sqlite3 /var/data/studytask.db ".backup /var/data/studytask-backup.db"
-```
-
-- No copies el archivo mientras haya escrituras activas sin usar un mecanismo
-  seguro de SQLite.
-
-## 8. Seguridad y operación
-
-- No subas `.env`, archivos `.db`, URLs de conexión ni credenciales.
-- Render genera `JWT_SECRET` y `CSRF_SECRET`; no los reemplaces por valores
-  débiles.
-- Si un secreto se expone, genera uno nuevo y redespliega.
-- Revisa los logs sin copiar cookies, tokens ni datos sensibles.
-- Mantén el servicio con una sola instancia mientras use SQLite.
-- El plan gratuito no ofrece Shell; usa las variables `ADMIN_*` para el
-  administrador inicial.
-- No ejecutes `sequelize.sync({ alter: true })` en producción.
-
-## 9. Reversión de migraciones
-
-Para revertir la última migración en un entorno con datos persistentes:
-
-```powershell
-npm run db:migrate:undo
-```
-
-No ejecutes reversiones en producción sin una copia de seguridad o una
-verificación previa de los datos.
-
-## 10. Migración desde PostgreSQL
-
-La versión final no depende de PostgreSQL. La base SQLite se crea desde cero
-con las migraciones. Si necesitas conservar datos de una instalación
-PostgreSQL anterior, expórtalos antes de retirar esa instalación y traslada
-los registros manualmente; la aplicación final no incluye un importador
-automático ni el driver `pg`.
+Vercel Hobby no exige método de pago para este proyecto académico y ofrece una
+URL HTTPS inmediata. La contrapartida es la limitación de SQLite descrita en la
+sección 1.

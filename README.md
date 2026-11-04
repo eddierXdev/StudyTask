@@ -76,7 +76,7 @@ tareas y el listado de usuarios registrados.
 
 ## Requisitos
 
-- **Node.js** `>=24.0.0 <25.0.0`
+- **Node.js** `24.x`
 - **npm**
 - No se necesita PostgreSQL ni ningún servidor de base de datos externo.
 
@@ -120,9 +120,9 @@ La aplicación estará disponible en **http://localhost:3000**.
 
 | Variable | Obligatoria | Descripción |
 | --- | --- | --- |
-| `PORT` | Sí | Puerto HTTP local. |
+| `PORT` | No | Puerto HTTP local. Por defecto `3000`; Vercel no lo define. |
 | `NODE_ENV` | Sí | `development`, `test` o `production`. |
-| `DATABASE_STORAGE` | No | Ruta del archivo SQLite. Por defecto `data/studytask.db`. |
+| `DATABASE_STORAGE` | No | Ruta del archivo SQLite. Por defecto `data/studytask.db`; en Vercel se usa `/tmp/studytask.db`. |
 | `JWT_SECRET` | Sí | Secreto de firma JWT, mínimo 32 caracteres. |
 | `CSRF_SECRET` | Sí | Secreto CSRF, mínimo 32 caracteres. |
 | `JWT_EXPIRES_IN` | Sí | Duración del JWT, por ejemplo `1h`. |
@@ -136,8 +136,8 @@ La aplicación estará disponible en **http://localhost:3000**.
 relativa al proyecto o una ruta absoluta para un volumen persistente.
 
 Las variables `ADMIN_*` solo se usan para crear el administrador inicial en
-un entorno sin Shell, como el plan gratuito de Render. En local es preferible
-usar `npm run create-admin` y no guardar la contraseña en `.env`.
+entornos gestionados sin Shell, como Vercel. En local es preferible usar
+`npm run create-admin` y no guardar la contraseña en `.env`.
 
 ## Scripts disponibles
 
@@ -146,6 +146,7 @@ usar `npm run create-admin` y no guardar la contraseña en `.env`.
 | `npm start` | Inicia el servidor con la base ya inicializada. |
 | `npm run dev` | Inicia el servidor en modo observación. |
 | `npm run start:production` | Inicializa la base, crea el administrador si se configuró y arranca. |
+| `scripts/start-alwaysdata.sh` | Arranque alternativo en Alwaysdata (migraciones, bootstrap y servidor). |
 | `npm run db:init` | Crea la base si falta y ejecuta las migraciones. |
 | `npm run db:migrate` | Ejecuta las migraciones pendientes. |
 | `npm run db:migrate:status` | Muestra el estado de las migraciones. |
@@ -160,6 +161,7 @@ usar `npm run create-admin` y no guardar la contraseña en `.env`.
 
 ```text
 studytask/
+├── api/             Punto de entrada para Vercel Functions
 ├── config/          Configuración de entorno y SQLite
 ├── controllers/     Controladores HTTP
 ├── data/            Archivo SQLite local (ignorado por Git)
@@ -174,7 +176,9 @@ studytask/
 ├── tests/           Pruebas de humo, integridad e integración
 ├── views/           Plantillas EJS y parciales
 ├── app.js           Configuración de Express
-├── server.js        Punto de entrada
+├── server.js        Punto de entrada local
+├── vercel.json      Configuración de Vercel Functions
+├── .vercelignore    Exclusiones del despliegue
 └── package.json
 ```
 
@@ -211,11 +215,12 @@ El script solicita nombre, correo y contraseña. También acepta
 `ADMIN_NAME`, `ADMIN_EMAIL` y `ADMIN_PASSWORD` para ejecución no
 interactiva. No guardes esas variables en archivos del proyecto.
 
-En Render, el plan gratuito no tiene Shell. Define `ADMIN_NAME`,
-`ADMIN_EMAIL` y `ADMIN_PASSWORD` como variables secretas del servicio;
-`npm run start:production` ejecutará `bootstrap-admin` y creará la cuenta si
-no existe. Consulta [DEPLOYMENT.md](DEPLOYMENT.md) para el procedimiento y
-las limitaciones de persistencia.
+En Vercel no hay Shell. Define `ADMIN_NAME`, `ADMIN_EMAIL` y `ADMIN_PASSWORD`
+como variables de entorno del proyecto; la inicialización de la función
+ejecutará `bootstrap-admin` antes de la primera petición. Como la base SQLite
+de Vercel es efímera, el administrador se recrea en cada instancia nueva.
+Consulta [DEPLOYMENT.md](DEPLOYMENT.md) para el procedimiento y las
+limitaciones de persistencia.
 
 ## Rutas principales
 
@@ -263,8 +268,11 @@ Relación: `User hasMany Task` / `Task belongsTo User`.
 
 - El archivo por defecto es `data/studytask.db`.
 - La carpeta `data/` se crea automáticamente.
-- En Render con plan Free se usa `/tmp/studytask.db`; ese archivo es
-  efímero y se pierde al reiniciar o redesplegar.
+- En Vercel se usa `/tmp/studytask.db` automáticamente; ese archivo es
+  efímero, no se comparte entre instancias y se pierde al reiniciar o
+  redesplegar. Es válido solo para una demostración.
+- En Alwaysdata, `DATABASE_STORAGE` apunta a una ruta absoluta dentro de la
+  cuenta y el archivo persiste entre reinicios.
 - Los archivos SQLite están excluidos mediante `.gitignore`; nunca deben
   subirse al repositorio.
 - Las migraciones viven en `migrations/` y se ejecutan con
@@ -314,31 +322,34 @@ de producción real.**
 
 La guía completa está en [DEPLOYMENT.md](DEPLOYMENT.md).
 
-El `render.yaml` incluido despliega en **Render** con el plan **Free**:
+La opción elegida es **Vercel Hobby**, que no exige método de pago para un
+proyecto académico y publica la aplicación con HTTPS. La configuración
+preparada incluye:
 
-- Servicio web Node.js con plan gratuito.
-- Sin disco persistente.
-- `DATABASE_STORAGE=/tmp/studytask.db`.
-- Migraciones y administrador inicial ejecutados al arrancar
-  (`npm run start:production`).
-- Secretos `JWT_SECRET` y `CSRF_SECRET` generados por la plataforma.
-- Instalación de producción con `npm ci --omit=dev`; `sequelize-cli`
-  forma parte de las dependencias necesarias para migrar al arrancar.
+- `api/index.js` como función serverless que reutiliza la aplicación Express.
+- `scripts/serverlessInit.js`, que crea la base, ejecuta las migraciones y
+  crea el administrador opcional antes de la primera petición.
+- `vercel.json` con `maxDuration`, los archivos que acompañan a la función y
+  la reescritura de todas las rutas hacia `/api`.
+- `.vercelignore` para no subir `.env`, la base local ni archivos ajenos al
+  despliegue.
+- Variables `JWT_SECRET` y `CSRF_SECRET` propias del entorno de Vercel.
 
-> **Importante:** el sistema de archivos del plan Free es efímero. La base
-> SQLite y los datos creados se pierden en cada reinicio, suspensión o
-> redespliegue. Es válido para una demostración, no para conservar datos
-> reales. Para persistencia se necesita un plan de pago con disco.
+> **Limitación:** Vercel Functions solo permite escribir en `/tmp`, que es
+> efímero y distinto por instancia. Por eso `DATABASE_STORAGE` se resuelve a
+> `/tmp/studytask.db`: la aplicación funciona para una demostración, pero los
+> usuarios y las tareas se pierden en cada cold start o redespliegue. Para
+> persistencia real se necesita una base gestionada o un host con disco
+> persistente.
 
-Render puede exigir un método de pago para crear el servicio, aunque se
-seleccione el plan Free. En esta cuenta, la API devolvió
-`402 Payment information is required`; sin una tarjeta de verificación no
-se puede completar el despliegue desde Render. El `render.yaml` ya está
-preparado para cuando ese requisito esté resuelto.
+`render.yaml` se eliminó: Render exige un método de pago de verificación
+incluso con su plan Free y su almacenamiento gratuito también es efímero. No
+se creó ningún recurso en Render.
 
-Para crear el administrador en Render sin Shell, define `ADMIN_NAME`,
-`ADMIN_EMAIL` y `ADMIN_PASSWORD` en las variables secretas del servicio. La
-guía completa está en [DEPLOYMENT.md](DEPLOYMENT.md).
+> **Estado:** la configuración para Vercel está lista, pero falta importar el
+> repositorio y definir las variables de entorno para obtener una URL pública.
+> No afirmes que el despliegue está terminado hasta completar las
+> comprobaciones de `DEPLOYMENT.md`.
 
 ## Documentación
 
@@ -348,7 +359,7 @@ guía completa está en [DEPLOYMENT.md](DEPLOYMENT.md).
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitectura MVC, capas y flujo de solicitudes. |
 | [docs/DATABASE.md](docs/DATABASE.md) | Entidades, columnas, restricciones y relaciones. |
 | [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) | Fases de desarrollo y criterios de aceptación. |
-| [DEPLOYMENT.md](DEPLOYMENT.md) | Despliegue paso a paso en Render. |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Despliegue paso a paso en Vercel. |
 | [AGENTS.md](AGENTS.md) | Reglas de trabajo y alcance del proyecto. |
 
 ---

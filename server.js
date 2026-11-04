@@ -1,11 +1,18 @@
 const app = require('./app');
 const environment = require('./config/environment');
 
-const server = app.listen(environment.port, () => {
+const host = process.env.HOST || process.env.IP;
+const displayHost = host || 'localhost';
+
+function onListening() {
   console.log(
-    `StudyTask listening on http://localhost:${environment.port} (${environment.nodeEnv})`
+    `StudyTask listening on http://${displayHost}:${environment.port} (${environment.nodeEnv})`
   );
-});
+}
+
+const server = host
+  ? app.listen(environment.port, host, onListening)
+  : app.listen(environment.port, onListening);
 
 server.on('error', (error) => {
   console.error(`Server error: ${error.message}`);

@@ -9,7 +9,6 @@ dotenv.config({
 
 const requiredVariables = [
   'NODE_ENV',
-  'PORT',
   'JWT_SECRET',
   'JWT_EXPIRES_IN',
   'COOKIE_NAME',
@@ -36,7 +35,8 @@ if (!['development', 'test', 'production'].includes(nodeEnv)) {
   throw new Error('NODE_ENV must be one of: development, test, production');
 }
 
-const port = Number(values.PORT);
+// Vercel does not provide PORT because the platform manages the listener.
+const port = Number(process.env.PORT || '3000');
 
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error('PORT must be an integer between 1 and 65535');

@@ -115,22 +115,22 @@ CSRF. - Logout.
 
 ### Fase 9 --- Despliegue
 
-Objetivos: - Preparar SQLite para el plan gratuito de Render. - Configurar
-servicio Node.js con plan gratuito. - Configurar variables de entorno. -
-Ejecutar migraciones. - Crear el administrador sin Shell. - Verificar
-HTTPS y cookies Secure. - Probar aplicación publicada.
+Objetivos: - Preparar SQLite para Vercel Hobby. - Configurar una Vercel
+Function con la aplicación Express. - Configurar variables de entorno. -
+Ejecutar migraciones en la primera petición. - Crear el administrador sin
+Shell. - Verificar HTTPS y cookies Secure. - Probar la aplicación publicada.
 
 Criterios: - URL pública funcional. - Autenticación funciona en
 producción. - No se exponen secretos. - La pérdida de datos por el
 sistema de archivos efímero está documentada.
 
-Estado: **Configuración gratuita preparada; despliegue bloqueado por
-Render**. Render Free no ofrece disco persistente ni Shell; la base SQLite
-vive en `/tmp` y se reinicia con el servicio. El administrador se crea con
-las variables `ADMIN_*`. La API de Render devuelve
-`402 Payment information is required` incluso con `plan: free`, por lo que
-la cuenta necesita un método de pago de verificación antes de crear el
-servicio.
+Estado: **Configuración para Vercel preparada; falta importar el
+repositorio y definir las variables de entorno**. Vercel Functions solo
+permite escribir en `/tmp`, que es efímero y propio de cada instancia; la
+base SQLite vive en `/tmp/studytask.db` y se pierde en cada cold start o
+redespliegue. El administrador se crea con las variables `ADMIN_*`. Render
+se descartó porque exige un método de pago de verificación incluso con su
+plan Free y su almacenamiento gratuito también es efímero.
 
 ### Fase 10 --- Entrega
 
@@ -169,5 +169,5 @@ avanzar.
   6\. Administración   Completada
   7\. Vistas           Completada
   8\. Pruebas          Completada
-  9\. Despliegue       Configuración Free lista; pendiente de URL pública
+  9\. Despliegue       Configuración Vercel lista; pendiente de URL pública
   10\. Entrega         README listo; despliegue pendiente

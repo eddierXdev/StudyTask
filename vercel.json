@@ -1,0 +1,16 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30,
+      "includeFiles": "{config,migrations,public,views,node_modules/bootstrap/dist,node_modules/sequelize-cli,node_modules/sqlite3,node_modules/bcrypt}/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ]
+}

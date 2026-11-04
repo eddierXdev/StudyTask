@@ -195,10 +195,14 @@ Las migraciones adaptadas a SQLite usan `VARCHAR` y restricciones
 -   La carpeta se crea automáticamente y los archivos `.db` están
     excluidos de Git.
 -   En local, el archivo persiste entre reinicios del servidor.
--   En el plan gratuito de Render se usa `/tmp/studytask.db`; el archivo
-    es efímero y se pierde al reiniciar o redesplegar.
--   Para persistencia en producción se necesita un volumen persistente,
-    como un disco de Render montado en `/var/data`.
+-   En Vercel se usa `/tmp/studytask.db`; el archivo es efímero, no se
+    comparte entre instancias y se pierde al reiniciar o redesplegar. Es
+    válido para una demostración, no para datos reales.
+-   En Alwaysdata Free, `DATABASE_STORAGE` apunta a una ruta absoluta dentro
+    de la cuenta y el archivo persiste entre reinicios; el plan incluye 1 GB
+    de disco. Esa configuración se conserva como alternativa fuera de Vercel.
+-   Para persistencia en producción se necesita un volumen persistente o una
+    base gestionada.
 -   SQLite no debe compartirse entre varias instancias o procesos que
     escriban el mismo archivo de forma simultánea.
 -   Para copias de seguridad, usa el mecanismo de backup de SQLite o

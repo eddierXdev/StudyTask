@@ -6,6 +6,8 @@ const { execFileSync } = require('node:child_process');
 
 const { resolveDatabaseStorage } = require('../config/databasePath');
 
+const PROJECT_ROOT = path.join(__dirname, '..');
+
 function ensureDatabaseDirectory(storage) {
   if (storage === ':memory:') {
     return;
@@ -17,23 +19,39 @@ function ensureDatabaseDirectory(storage) {
 function runMigrations() {
   const cliPath = require.resolve('sequelize-cli/lib/sequelize');
 
-  execFileSync(process.execPath, [cliPath, 'db:migrate'], {
-    cwd: path.join(__dirname, '..'),
-    env: process.env,
-    stdio: 'inherit',
-  });
+  execFileSync(
+    process.execPath,
+    [
+      cliPath,
+      'db:migrate',
+      '--config',
+      path.join(PROJECT_ROOT, 'config', 'config.js'),
+      '--migrations-path',
+      path.join(PROJECT_ROOT, 'migrations'),
+    ],
+    {
+      cwd: PROJECT_ROOT,
+      env: process.env,
+      stdio: 'inherit',
+    }
+  );
 }
 
-function main() {
+function initializeDatabase() {
   const storage = resolveDatabaseStorage();
   ensureDatabaseDirectory(storage);
   runMigrations();
   console.log(`SQLite database initialized at ${storage}`);
+  return storage;
 }
 
-try {
-  main();
-} catch (error) {
-  console.error(`Database initialization failed: ${error.message}`);
-  process.exitCode = 1;
+if (require.main === module) {
+  try {
+    initializeDatabase();
+  } catch (error) {
+    console.error(`Database initialization failed: ${error.message}`);
+    process.exitCode = 1;
+  }
 }
+
+module.exports = { initializeDatabase };

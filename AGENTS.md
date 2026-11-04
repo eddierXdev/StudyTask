@@ -139,12 +139,16 @@ decisiones previas que no hayan sido modificadas.
 ## 9. Estado del proyecto
 
 **Estado: implementación completada; migración a SQLite completada;
-configuración para Render Free completada; despliegue público bloqueado
-por el requisito de pago de Render.**
+configuración para Vercel preparada; despliegue público pendiente de
+importar el repositorio y definir las variables de entorno. Render
+descartado por exigir método de pago.**
 
 La documentación de `docs/` se mantiene sincronizada con la versión
-SQLite. El plan gratuito de Render usa almacenamiento efímero: la
-aplicación funciona, pero los datos se pierden al reiniciar. Además,
-Render exige un método de pago para crear el servicio en esta cuenta,
-aunque se use el plan Free. Para persistencia se requiere un plan de pago
-con disco, según `DEPLOYMENT.md`.
+SQLite. Vercel Hobby no exige método de pago para este proyecto académico,
+pero sus funciones solo permiten escribir en `/tmp`, que es efímero y
+distinto por instancia. Por eso `DATABASE_STORAGE` se resuelve a
+`/tmp/studytask.db`: la aplicación sirve para una demostración, pero los
+datos se pierden en cada cold start o redespliegue. Para persistencia real
+se necesita una base gestionada o un host con disco persistente; el script
+`scripts/start-alwaysdata.sh` se conserva como alternativa. Consulta
+`DEPLOYMENT.md`.

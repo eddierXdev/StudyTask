@@ -309,7 +309,8 @@ secretos reales en `.env.example`.
 
 En producción: - `NODE_ENV=production`. - HTTPS activo. - Cookie
 `Secure`. - Secreto JWT fuerte. - Archivo SQLite en un volumen
-persistente. - No exponer stack traces al usuario.
+persistente cuando la plataforma lo permita; en Vercel Hobby vive en
+`/tmp` y es efímero. - No exponer stack traces al usuario.
 
 ## 11. Seguridad adicional
 
@@ -324,28 +325,35 @@ persistente. - No exponer stack traces al usuario.
 
 ## 12. Despliegue
 
-Plataforma prevista: Render.
+Plataforma principal: Vercel Hobby, mediante una Vercel Function. Render se
+descartó porque exige un método de pago de verificación incluso con su plan
+Free y su almacenamiento gratuito también es efímero.
 
-Componentes: - Servicio web Node.js. - Archivo SQLite en `/tmp` para el
-plan gratuito. - Variables de entorno. - HTTPS. - Comando de inicio de
-producción que ejecuta las migraciones y el bootstrap opcional del
-administrador.
+Componentes:
 
-El plan **Free** de Render no ofrece discos persistentes ni Shell. El
-`render.yaml` usa `DATABASE_STORAGE=/tmp/studytask.db`; la base funciona,
-pero se pierde en cada reinicio o redespliegue. Para persistencia real se
-necesita un plan de pago con un disco montado en `/var/data` y cambiar
-`DATABASE_STORAGE` a `/var/data/studytask.db`. La creación del servicio
-puede requerir un método de pago de verificación en Render, incluso con el
-plan Free.
+- `api/index.js` como punto de entrada serverless que monta la aplicación
+  Express existente.
+- `scripts/serverlessInit.js`, que inicializa la base y el administrador
+  opcional una sola vez por instancia.
+- `vercel.json`, que define `maxDuration`, los archivos incluidos en la
+  función y la reescritura de todas las rutas hacia `/api`.
+- Variables de entorno y HTTPS proporcionado por Vercel.
 
-El administrador inicial se puede crear sin Shell con
-`npm run bootstrap-admin` y las variables `ADMIN_NAME`, `ADMIN_EMAIL` y
-`ADMIN_PASSWORD`; `start:production` ejecuta ese paso antes de iniciar el
-servidor. La estrategia de migraciones está definida: `npm run db:init`
-crea el archivo si falta y ejecuta las migraciones versionadas de
-`migrations/`. No se debe depender de `sequelize.sync({ alter: true })`
-como mecanismo de migración permanente.
+Vercel Functions tiene un sistema de archivos de solo lectura excepto `/tmp`.
+Por eso `DATABASE_STORAGE` se resuelve a `/tmp/studytask.db` cuando existe la
+variable `VERCEL`. Ese archivo es efímero y propio de cada instancia: la
+configuración sirve para una demostración, pero no garantiza persistencia ni
+consistencia entre instancias. Para persistencia real se necesita una base
+gestionada o un host con disco persistente; `scripts/start-alwaysdata.sh` se
+conserva como alternativa fuera de Vercel.
+
+El administrador inicial se define con `ADMIN_NAME`, `ADMIN_EMAIL` y
+`ADMIN_PASSWORD` en el entorno de Vercel, porque no hay Shell. La estrategia
+de migraciones está definida: `npm run db:init` crea el archivo si falta y
+ejecuta las migraciones versionadas de `migrations/`; en Vercel, la
+inicialización de la función ejecuta esa misma lógica antes de la primera
+petición. No se debe depender de `sequelize.sync({ alter: true })` como
+mecanismo de migración permanente.
 
 ## 13. Decisiones de implementación resueltas
 

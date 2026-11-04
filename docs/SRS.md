@@ -284,7 +284,8 @@ El proyecto se considerará funcionalmente completo cuando:
 -   El administrador pueda consultar usuarios sin ver hashes.
 -   El filtro por estado funcione.
 -   EJS renderice las vistas dinámicas.
--   SQLite persista los datos.
+-   SQLite persista los datos en local y en un host con disco persistente;
+    en Vercel Hobby el almacenamiento es efímero (limitación documentada).
 -   La aplicación desplegada funcione mediante HTTPS.
 
 ## 9. Relación con el enunciado académico
@@ -297,7 +298,7 @@ proyecto final:
 3.  Registro, login, bcrypt, JWT, middleware de protección y roles
     `user`/`admin`.
 4.  Vistas dinámicas EJS, layout y partials.
-5.  Despliegue en Render o plataforma permitida, variables de entorno y
+5.  Despliegue en Vercel o plataforma permitida, variables de entorno y
     HTTPS.
 
 Los extras académicos no se consideran parte del alcance inicial salvo

@@ -64,7 +64,7 @@ function readAdminConfig() {
   };
 }
 
-async function main() {
+async function bootstrapAdmin() {
   const adminConfig = readAdminConfig();
 
   if (!adminConfig) {
@@ -91,8 +91,10 @@ async function main() {
   console.log('Bootstrap administrator created.');
 }
 
-main()
-  .catch((error) => {
+async function runCli() {
+  try {
+    await bootstrapAdmin();
+  } catch (error) {
     if (error instanceof BootstrapAdminError) {
       console.error(`Bootstrap administrator error: ${error.message}`);
     } else {
@@ -100,11 +102,17 @@ main()
     }
 
     process.exitCode = 1;
-  })
-  .finally(async () => {
+  } finally {
     try {
       await sequelize.close();
     } catch (error) {
       // The process is ending; do not expose connection details.
     }
-  });
+  }
+}
+
+if (require.main === module) {
+  runCli();
+}
+
+module.exports = { bootstrapAdmin };
